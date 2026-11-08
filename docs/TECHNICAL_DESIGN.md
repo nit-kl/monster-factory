@@ -42,3 +42,15 @@ git init
 codex
 ```
 First prompt: "Read AGENTS.md and all docs. Before coding, summarize canonical decisions, MVP scope, unresolved points, and a safe first implementation plan. Then scaffold Vite/React/TS/Phaser with Cloudflare Pages-ready static build, placeholder factory scene and 4 navigation screens; add tests and build. Do not push/deploy."
+
+## 2026-11-08 update: Three.js factory
+
+Per explicit user instruction, the factory now uses Three.js (Factory3D.ts) with OrbitControls, procedural geometry, lighting and raycast equipment selection. React supplies the accessible equipment labels and UI. No characters are placed inside the factory. FactoryView owns renderer creation and disposal on navigation, including geometry, materials, controls, labels and animation frames. Domain simulation remains separate. The prior Phaser scene file is retained as unused historical code and is not imported into the app bundle.
+
+## 2026-11-08 update: click navigation across floors
+
+Factory3D uses separate production and research groups, with the research floor elevated by 11 world units. Only the active floor is visible (cutaway view). Floor switches and equipment selection interpolate the camera and target; reduced-motion preference applies the target immediately. Free drag/scroll camera input is disabled. React retains the selected floor through conversation via the selected equipment. Floor state is session UI state and is not saved to IndexedDB. Characters appear only in the existing portrait conversation view. Hidden-floor objects are excluded from raycasting.
+
+## Camera interaction update
+
+Drag rotation and wheel zoom are enabled alongside click navigation. OrbitControls start cancels automatic camera travel. Automatic travel only runs after equipment selection, floor switching, or reset; it stops at its destination. Manual camera damping is disabled to avoid delayed drift. Horizontal rotation is unrestricted, vertical rotation and distance remain bounded.
