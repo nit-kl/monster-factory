@@ -10,7 +10,16 @@ try {
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  const shot = async name => { if (shots) await page.screenshot({ path: `test/e2e/${name}.png` }); };
+  const shot = async name => {
+    // 画面に割り当てた画像の404・破損を、見た目だけでなく読み込み結果で検出する。
+    await page.locator('img').evaluateAll(async images => {
+      await Promise.all(images.map(async img => {
+        await img.decode();
+        if (!img.naturalWidth) throw Error(`画像を読み込めません: ${img.src}`);
+      }));
+    });
+    if (shots) await page.screenshot({ path: `test/e2e/${name}.png` });
+  };
   const id = name => page.getByTestId(name);
 
   /** 会話を最後まで進める。選択肢は first=true なら1番目、false なら最後を選ぶ。 */

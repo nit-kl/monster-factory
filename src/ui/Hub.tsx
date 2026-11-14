@@ -8,11 +8,13 @@ import { useGame } from '../state/store';
 import { LineScene } from '../three/line';
 import { Canvas3D, UnitCard } from './common';
 import { Portrait, Thumb } from './Portrait';
+import { CreatureArt } from './CreatureArt';
 
 export function EnemyInfo({ id }: { id: EnemyId }) {
   const e = enemies[id];
   return (
     <div className="enemy-info">
+      <CreatureArt id={id} />
       <strong>{e.name}</strong>
       <span>耐久 {e.hp}</span><span>攻撃 {e.attack}</span><span>速度 {e.speed}</span>
       <p>{e.note}</p>

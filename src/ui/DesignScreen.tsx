@@ -6,6 +6,8 @@ import { dayOf, stepOf } from '../domain/progress';
 import { useGame } from '../state/store';
 import { Preview } from '../three/preview';
 import { Canvas3D, StatRow, Tags } from './common';
+import { CreatureArt } from './CreatureArt';
+import type { BodyId } from '../data/parts';
 
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 type Part = { name: string; note: string; day: number; cost: number; hp?: number; attack?: number; speed?: number };
@@ -21,6 +23,7 @@ function Group<K extends keyof Design>({ title, slot, table, day }: { title: str
           const deltas = [p.hp ? `耐久${slot === 'body' ? ' ' + p.hp : signed(p.hp)}` : '', p.attack ? `攻撃${slot === 'body' ? ' ' + p.attack : signed(p.attack)}` : '', p.speed ? `速度${slot === 'body' ? ' ' + p.speed : signed(p.speed)}` : ''].filter(Boolean);
           return (
             <button key={id} className="part" disabled={locked} aria-pressed={design[slot] === id} onClick={() => setDesign({ [slot]: id } as Partial<Design>)} data-testid={`part-${slot}-${id}`}>
+              {slot === 'body' && <CreatureArt id={id as BodyId} className="body-art" />}
               <header><strong>{p.name}</strong><span className="cost">容量 {slot === 'process' ? signed(p.cost) : p.cost}</span></header>
               {locked ? <p className="locked">{p.day}日目に入荷</p> : <><p className="deltas">{deltas.join('　') || '補正なし'}</p><p>{p.note}</p></>}
             </button>

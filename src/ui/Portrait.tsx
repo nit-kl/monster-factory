@@ -35,5 +35,5 @@ export function Portrait({ id, className = '' }: { id: CastId; className?: strin
 }
 export function Thumb({ id }: { id: CastId }) {
   const c = cast[id];
-  return <span className="thumb" style={{ borderColor: c.color }}>{c.image ? <img src={c.image} alt="" /> : null}</span>;
+  return <span className={`thumb thumb-${id} ${c.wide ? 'thumb-wide' : ''}`} style={{ borderColor: c.color }} aria-hidden="true">{c.image ? <img src={c.image} alt="" draggable={false} /> : <span className="thumb-fallback">◆</span>}</span>;
 }

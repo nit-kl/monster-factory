@@ -126,7 +126,29 @@ button.ghost { background: transparent; border-color: transparent; display: flex
 .consult-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 .consult-tabs button { display: flex; align-items: center; gap: 8px; padding: 5px 14px 5px 5px; border-radius: 99px; }
 .thumb { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; border: 2px solid var(--brass); overflow: hidden; background: #1c1230; display: inline-block; }
-.thumb img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
+.thumb { position: relative; background: radial-gradient(circle at 50% 35%, #55416b, #1c1230 80%); }
+.thumb img { position: absolute; width: 190%; max-width: none; height: auto; left: -45%; top: -12%; }
+.thumb-wide img { width: 155%; left: -27.5%; top: -10%; }
+.thumb-pluru img { width: 130%; left: -15%; top: -5%; }
+.thumb-fallback { display: grid; place-items: center; height: 100%; color: var(--gold); }
+
+/* 共通の素体図版：テキストと組み合わせ、色だけに依存せず識別する。 */
+.creature-art { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; flex: 0 0 64px; overflow: hidden; border: 1px solid rgba(201, 152, 63, 0.4); border-radius: 12px; background: radial-gradient(ellipse at 50% 70%, #504064, #171020 75%); box-shadow: inset 0 0 16px #08050d80; }
+.creature-art img { width: 100%; height: 100%; object-fit: contain; padding: 3px; filter: drop-shadow(0 3px 4px #0009); }
+.unit header { align-items: center; gap: 10px; margin-bottom: 8px; }
+.unit header strong { flex: 1; min-width: 0; }
+.unit header small { white-space: nowrap; font-size: 0.72rem; }
+.unit .creature-art { width: 52px; height: 58px; flex-basis: 52px; }
+.enemy-info { align-items: center; }
+.enemy-info .creature-art { width: 60px; height: 70px; flex-basis: 60px; }
+.part .body-art { width: 100%; height: 76px; margin-bottom: 5px; }
+.part:disabled .body-art { filter: grayscale(0.8); opacity: 0.55; }
+.part[aria-pressed="true"] .body-art { border-color: var(--gold); background: radial-gradient(ellipse at 50% 70%, #6b4c82, #23172f 80%); }
+.side { position: relative; padding-left: 90px; min-height: 78px; }
+.side > .creature-art { position: absolute; left: 0; top: 0; width: 76px; height: 78px; }
+.side.foe { padding-left: 0; padding-right: 90px; }
+.side.foe > .creature-art { left: auto; right: 0; }
+.portrait-zelva { height: 95vh; bottom: -4vh; }
 
 /* ---- 設計台 ---- */
 .design { background: radial-gradient(ellipse at 50% 30%, #1c1436, #0b0714 70%); display: flex; flex-direction: column; }

@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { attacks, bodies, defenses, processes } from '../data/parts';
 import type { Design, Stats } from '../domain/design';
 import type { Unit } from '../domain/manufacture';
+import { CreatureArt } from './CreatureArt';
 
 export const designLabel = (d: Design) => `${bodies[d.body].name} ／ ${attacks[d.attack].name} ／ ${defenses[d.defense].name} ／ ${processes[d.process].name}`;
 
@@ -30,7 +31,7 @@ export function Tags({ stats }: { stats: Stats }) {
 export function UnitCard({ unit, selected, onSelect }: { unit: Unit; selected?: boolean; onSelect?: () => void }) {
   const body = (
     <>
-      <header><strong>{unit.name}</strong><small>{unit.wins}勝 {unit.losses}敗</small></header>
+      <header><CreatureArt id={unit.design.body} /><strong>{unit.name}</strong><small>{unit.wins}勝 {unit.losses}敗</small></header>
       <p>{designLabel(unit.design)}</p>
       <div className="mini"><span>耐久 {unit.stats.hp}</span><span>攻撃 {unit.stats.attack}</span><span>速度 {unit.stats.speed}</span></div>
       <Tags stats={unit.stats} />

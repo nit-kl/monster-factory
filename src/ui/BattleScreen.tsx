@@ -6,6 +6,7 @@ import { useGame } from '../state/store';
 import { Arena } from '../three/arena';
 import { Canvas3D } from './common';
 import { Thumb } from './Portrait';
+import { CreatureArt } from './CreatureArt';
 
 type Pop = { id: number; side: 'monster' | 'enemy'; text: string; tone: string };
 
@@ -50,12 +51,14 @@ export function BattleScreen() {
       <div className="shade-top" /><div className="shade-bottom" />
       <header className="duel">
         <div className="side">
+          <CreatureArt id={unit.design.body} />
           <strong>{unit.name}</strong>
           <div className="hpbar"><i style={{ width: `${(monsterHp / result.maxHp) * 100}%` }} /></div>
           <span data-testid="monster-hp">{monsterHp} / {result.maxHp}</span>
         </div>
         <div className="turn"><small>巡目</small><b>{shown?.turn ?? 1}</b></div>
         <div className="side foe">
+          <CreatureArt id={enemy} />
           <strong>{foe.name}</strong>
           <div className="hpbar"><i style={{ width: `${(enemyHp / foe.hp) * 100}%` }} /></div>
           <span>{enemyHp} / {foe.hp}</span>
