@@ -1,75 +1,36 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { enemies } from '../data/enemies';
-import { attacks, bodies, capacity, defenses, processes } from '../data/parts';
-import { calculate, designNotes, overCapacity, unlocked, type Design } from '../domain/design';
-import { dayOf, stepOf } from '../domain/progress';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { materials, recipes, type MaterialId } from '../data/recipes';
+import { calculate, recipeFor, unlocked } from '../domain/design';
+import { dayOf } from '../domain/progress';
 import { useGame } from '../state/store';
 import { Preview } from '../three/preview';
-import { Canvas3D, StatRow, Tags } from './common';
-import { CreatureArt } from './CreatureArt';
-import type { BodyId } from '../data/parts';
-
-const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
-type Part = { name: string; note: string; day: number; cost: number; hp?: number; attack?: number; speed?: number };
-
-function Group<K extends keyof Design>({ title, slot, table, day }: { title: string; slot: K; table: Record<string, Part>; day: number }) {
-  const design = useGame(s => s.design), setDesign = useGame(s => s.setDesign);
-  return (
-    <section className="partgroup">
-      <h3>{title}</h3>
-      <div className="parts">
-        {Object.entries(table).map(([id, p]) => {
-          const locked = p.day > day;
-          const deltas = [p.hp ? `耐久${slot === 'body' ? ' ' + p.hp : signed(p.hp)}` : '', p.attack ? `攻撃${slot === 'body' ? ' ' + p.attack : signed(p.attack)}` : '', p.speed ? `速度${slot === 'body' ? ' ' + p.speed : signed(p.speed)}` : ''].filter(Boolean);
-          return (
-            <button key={id} className="part" disabled={locked} aria-pressed={design[slot] === id} onClick={() => setDesign({ [slot]: id } as Partial<Design>)} data-testid={`part-${slot}-${id}`}>
-              {slot === 'body' && <CreatureArt id={id as BodyId} className="body-art" />}
-              <header><strong>{p.name}</strong><span className="cost">容量 {slot === 'process' ? signed(p.cost) : p.cost}</span></header>
-              {locked ? <p className="locked">{p.day}日目に入荷</p> : <><p className="deltas">{deltas.join('　') || '補正なし'}</p><p>{p.note}</p></>}
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
+import { Canvas3D, StatBlock } from './common';
+import { MaterialIcon, MonsterIcon } from './RecipeArt';
 
 export function DesignScreen() {
-  const { design, progress, go, startManufacture } = useGame();
-  const day = dayOf(progress), stats = calculate(design), notes = designNotes(design), step = stepOf(progress);
-  const enemy = step.kind === 'objective' ? enemies[step.enemy] : null;
+  const { design, progress, discovered, go, setDesign, startManufacture } = useGame();
+  const [slot, setSlot] = useState<'first' | 'second'>('first');
+  const day = dayOf(progress), recipe = recipeFor(design), known = !!recipe && discovered.includes(recipe.id);
   const preview = useRef<Preview | null>(null);
-  useEffect(() => { preview.current?.setDesign(design); }, [design]);
-  const ready = useCallback((p: Preview | null) => { preview.current = p; p?.setDesign(useGame.getState().design); }, []);
-  const blocked = overCapacity(design) || !unlocked(day, design);
-  return (
-    <div className="screen design" data-testid="design">
-      <header className="bar-top"><div><small>2F 研究フロア</small><h1>設計台</h1></div><button onClick={() => go('hub')}>工場へ戻る</button></header>
-      <div className="design-grid">
-        <div className="design-parts">
-          <Group title="身体" slot="body" table={bodies} day={day} />
-          <Group title="攻めの器官" slot="attack" table={attacks} day={day} />
-          <Group title="守りの器官" slot="defense" table={defenses} day={day} />
-          <Group title="培養工程" slot="process" table={processes} day={day} />
-        </div>
-        <div className="design-preview">
-          <Canvas3D className="fill" create={h => new Preview(h)} onReady={ready} />
-          <p className="hint">ドラッグで回転</p>
-        </div>
-        <aside className="design-side panel">
-          <h2>設計の性能</h2>
-          <StatRow label="耐久力" value={stats.hp} max={130} tone="hp" note={enemy ? `相手の攻撃 ${enemy.attack}` : undefined} />
-          <StatRow label="攻撃力" value={stats.attack} max={40} tone="atk" note={enemy ? `相手の耐久 ${enemy.hp}` : undefined} />
-          <StatRow label="速度" value={stats.speed} max={20} tone="spd" note={enemy ? `相手の速度 ${enemy.speed}` : undefined} />
-          <StatRow label="容量" value={stats.cost} max={capacity} tone={stats.cost > capacity ? 'over' : 'cap'} note={`上限 ${capacity}`} />
-          <Tags stats={stats} />
-          <h3>相性メモ</h3>
-          <ul className="notes">
-            {notes.length ? notes.map(n => <li key={n.text} className={n.tone}>{n.text}</li>) : <li className="info">特別な相性はありません。</li>}
-          </ul>
-          <button className="big primary" disabled={blocked} onClick={startManufacture} data-testid="manufacture"><b>この設計で製造する</b><small>{blocked ? '容量を超えています' : '1F 製造ラインへ送る'}</small></button>
-        </aside>
+  const ready = useCallback((p: Preview | null) => { preview.current = p; const s = useGame.getState(), r = recipeFor(s.design); p?.setDesign(s.design, !!r && s.discovered.includes(r.id)); }, []);
+  useEffect(() => { preview.current?.setDesign(design, known); }, [design, known]);
+  return <div className="screen design" data-testid="design">
+    <header className="bar-top"><div><small>2F 配合研究室</small><h1>二つの材料から、ひとつの命。</h1></div><button onClick={() => go('hub')}>工場へ戻る</button></header>
+    <div className="synthesis-grid">
+      <aside className="material-shelf panel">
+        <h2>材料庫 <small>第{day}日</small></h2><p className="note">投入先を選び、材料を選択。順番は自由です。</p>
+        <div className="mix-slots">{(['first', 'second'] as const).map((key, i) => <button key={key} aria-pressed={slot === key} onClick={() => setSlot(key)} data-testid={`slot-${key}`}><small>材料 {i + 1}</small><MaterialIcon id={design[key]} /><strong>{materials[design[key]].name}</strong></button>)}</div>
+        <div className="material-list">{Object.entries(materials).map(([id, m]) => <button key={id} disabled={m.day > day} aria-pressed={design[slot] === id} onClick={() => { setDesign({ [slot]: id }); setSlot(slot === 'first' ? 'second' : 'first'); }} data-testid={`material-${id}`}><MaterialIcon id={id as MaterialId} /><span><strong>{m.name}</strong><small>{m.day > day ? `${m.day}日目に届く` : m.note}</small></span></button>)}</div>
+      </aside>
+      <div className="synthesis-center"><div className="design-preview"><Canvas3D className="fill" create={h => new Preview(h)} onReady={ready} /><div className="specimen-label"><small>{known ? '記録済みの生命' : '共鳴観測'}</small><h2>{known ? recipe!.name : recipe ? '未知の生命反応' : '反応なし'}</h2></div><p className="hint">ドラッグで回転 · {known ? '再現可能なレシピ' : '完成した姿は、誕生のときに'}</p></div>
+        <div className="reaction panel" aria-live="polite"><strong>{recipe ? '共鳴を確認' : 'この配合は成立しません'}</strong><p>{recipe?.hint ?? '生命を結ぶ反応がありません。材料を替えてみてください。同じ材料同士も反応しません。'}</p></div>
       </div>
+      <aside className="recipe-notes panel"><h2>{known ? recipe!.epithet : '製造ノート'}</h2>
+        {known ? <><p>{recipe!.lore}</p><StatBlock stats={calculate(design)} /><div className="skill-note"><small>固有技 · 3回目の攻撃で発動</small><h3>{recipe!.skill}</h3><p>{recipe!.skillNote}</p></div></> : <p>材料の性質が、姿と戦い方になります。最初の一体を製造すると、この配合と能力が記録されます。</p>}
+        <button className="big primary" disabled={!unlocked(day, design)} onClick={startManufacture} data-testid="manufacture"><b>{known ? 'この魔物をもう一度つくる' : 'この配合で命をつくる'}</b><small>{recipe ? `${materials[design.first].name} × ${materials[design.second].name}` : '別の材料を選んでください'}</small></button>
+        <h3>発見したレシピ <span data-testid="discovery-count">{discovered.length} / {recipes.length}</span></h3>
+        <div className="recipe-book">{recipes.map(r => { const seen = discovered.includes(r.id); return <button key={r.id} disabled={!seen || r.pair.some(m => materials[m].day > day)} onClick={() => setDesign({ first: r.pair[0], second: r.pair[1] })} data-testid={`recipe-${r.id}`}><MonsterIcon id={r.id} hidden={!seen} /><span>{seen ? r.name : '未発見'}<small>{seen ? r.pair.map(m => materials[m].name).join(' × ') : r.pair.some(m => materials[m].day > day) ? '未入荷の材料が必要' : r.hint}</small></span></button>; })}</div>
+      </aside>
     </div>
-  );
+  </div>;
 }

@@ -1,5 +1,7 @@
 # Roadmap and acceptance criteria
 
+> 初期ロードマップ。2026-11-14承認の現行ゲームループは [MATERIAL_SYNTHESIS.md](MATERIAL_SYNTHESIS.md)。旧器官設計・ライン管理の項目は再検討対象。
+
 ## Milestone 0 — context and bootstrap
 - Codex reads this repository context, sets up React/Vite/TypeScript/Phaser, basic scene, tab navigation (factory/design/battle/story), tooling and tests.
 - Done when local `npm run dev` displays the placeholder factory, `npm run build` passes, and test scripts are defined and run where feasible.

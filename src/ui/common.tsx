@@ -1,10 +1,11 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { attacks, bodies, defenses, processes } from '../data/parts';
+import { materials } from '../data/recipes';
+import { recipeFor } from '../domain/design';
 import type { Design, Stats } from '../domain/design';
 import type { Unit } from '../domain/manufacture';
-import { CreatureArt } from './CreatureArt';
+import { MonsterIcon } from './RecipeArt';
 
-export const designLabel = (d: Design) => `${bodies[d.body].name} ／ ${attacks[d.attack].name} ／ ${defenses[d.defense].name} ／ ${processes[d.process].name}`;
+export const designLabel = (d: Design) => `${materials[d.first].name} × ${materials[d.second].name}`;
 
 export function StatRow({ label, value, max, tone = '', note }: { label: string; value: number; max: number; tone?: string; note?: ReactNode }) {
   return (
@@ -25,13 +26,13 @@ export function StatBlock({ stats }: { stats: Stats }) {
   );
 }
 export function Tags({ stats }: { stats: Stats }) {
-  const tags = [stats.selfBurn ? ['warn', `自傷 ${stats.selfBurn}`] : null, stats.heatProof ? ['good', '耐熱'] : null, stats.coldWeak ? ['warn', '冷気に弱い'] : null, stats.poison ? ['info', '毒'] : null, stats.regen ? ['info', '再生'] : null].filter(Boolean) as [string, string][];
+  const tags = [stats.armor ? ['good', `装甲 ${stats.armor}`] : null, stats.coldWeak ? ['warn', '冷気に弱い'] : null, stats.poison ? ['info', '毒'] : null, stats.regen ? ['info', '再生'] : null].filter(Boolean) as [string, string][];
   return tags.length ? <div className="tags">{tags.map(([tone, text]) => <span key={text} className={tone}>{text}</span>)}</div> : null;
 }
 export function UnitCard({ unit, selected, onSelect }: { unit: Unit; selected?: boolean; onSelect?: () => void }) {
   const body = (
     <>
-      <header><CreatureArt id={unit.design.body} /><strong>{unit.name}</strong><small>{unit.wins}勝 {unit.losses}敗</small></header>
+      <header><MonsterIcon id={recipeFor(unit.design)!.id} /><strong>{unit.name}</strong><small>{unit.wins}勝 {unit.losses}敗</small></header>
       <p>{designLabel(unit.design)}</p>
       <div className="mini"><span>耐久 {unit.stats.hp}</span><span>攻撃 {unit.stats.attack}</span><span>速度 {unit.stats.speed}</span></div>
       <Tags stats={unit.stats} />

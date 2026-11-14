@@ -1,18 +1,21 @@
 import { steps } from '../data/chapter1';
 import { attacks, bodies, defenses, processes } from '../data/parts';
+import { materials, recipes, recipeById, type RecipeId } from '../data/recipes';
+import { recipeFor } from './design';
 import type { Design } from './design';
 import { makeUnit, hangarSize, type Unit } from './manufacture';
 import type { Progress } from './progress';
 
-/** 保存形式 v2。個体の性能は保存せず、読込時に設計から再計算する。 */
+/** 保存形式 v3。v2 の個体を配合へ移行し、性能は読込時に再計算する。 */
 export type SaveData = {
-  version: 2;
+  version: 3;
+  discovered: RecipeId[];
   progress: Progress;
   design: Design;
   roster: { id: number; design: Design; wins: number; losses: number }[];
   nextId: number; battles: number; moved: number;
 };
-export type GameData = { progress: Progress; design: Design; roster: Unit[]; nextId: number; battles: number; moved: number };
+export type GameData = { progress: Progress; design: Design; roster: Unit[]; nextId: number; battles: number; moved: number; discovered: RecipeId[] };
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 const count = (v: unknown, label: string): number => {
@@ -23,17 +26,23 @@ const strings = (v: unknown, label: string): string[] => {
   if (!Array.isArray(v) || v.some(x => typeof x !== 'string')) throw Error(`${label}が不正です`);
   return [...v] as string[];
 };
-function design(v: unknown): Design {
+function legacyDesign(v: unknown): Design {
   if (!isObject(v) || typeof v.body !== 'string' || !Object.hasOwn(bodies, v.body) || typeof v.attack !== 'string' || !Object.hasOwn(attacks, v.attack)
     || typeof v.defense !== 'string' || !Object.hasOwn(defenses, v.defense) || typeof v.process !== 'string' || !Object.hasOwn(processes, v.process)) throw Error('設計データが不正です');
-  return { body: v.body, attack: v.attack, defense: v.defense, process: v.process } as Design;
+  const id: RecipeId = v.body === 'beast' ? 'bloom' : v.attack === 'venom' ? 'thorn' : v.attack === 'fire' ? 'furnace' : 'wraith';
+  const r = recipeById(id); return { first: r.pair[0], second: r.pair[1] };
+}
+function design(v: unknown): Design {
+  if (!isObject(v) || typeof v.first !== 'string' || typeof v.second !== 'string' || !Object.hasOwn(materials, v.first) || !Object.hasOwn(materials, v.second)) throw Error('設計データが不正です');
+  return { first: v.first, second: v.second } as Design;
 }
 
 export function toSave(g: GameData): SaveData {
-  return { version: 2, progress: g.progress, design: g.design, nextId: g.nextId, battles: g.battles, moved: g.moved, roster: g.roster.map(u => ({ id: u.id, design: u.design, wins: u.wins, losses: u.losses })) };
+  return { version: 3, discovered: [...g.discovered], progress: g.progress, design: g.design, nextId: g.nextId, battles: g.battles, moved: g.moved, roster: g.roster.map(u => ({ id: u.id, design: u.design, wins: u.wins, losses: u.losses })) };
 }
 export function parseSave(v: unknown): GameData {
-  if (!isObject(v) || v.version !== 2) throw Error('この保存形式には対応していません');
+  if (!isObject(v) || (v.version !== 2 && v.version !== 3)) throw Error('この保存形式には対応していません');
+  const parseDesign = v.version === 2 ? legacyDesign : design;
   const p = v.progress;
   if (!isObject(p)) throw Error('進行データが不正です');
   const step = count(p.step, '進行位置');
@@ -47,14 +56,22 @@ export function parseSave(v: unknown): GameData {
     const id = count(r.id, '個体番号');
     if (id < 1 || id >= nextId || ids.has(id)) throw Error('個体番号が不正です');
     ids.add(id);
-    return { ...makeUnit(design(r.design), id), wins: count(r.wins, '戦績'), losses: count(r.losses, '戦績') };
+    const d = parseDesign(r.design);
+    if (!recipeFor(d)) throw Error('個体の配合が不正です');
+    return { ...makeUnit(d, id), wins: count(r.wins, '戦績'), losses: count(r.losses, '戦績') };
   });
-  return { progress, design: design(v.design), roster, nextId: Math.max(1, nextId), battles: count(v.battles, '戦闘回数'), moved: count(v.moved, '療養棟の記録') };
+  const discovered = v.version === 2 ? [] : strings(v.discovered, '発見の記録');
+  if (discovered.some(id => !recipes.some(r => r.id === id))) throw Error('発見の記録が不正です');
+  return { progress, design: parseDesign(v.design), roster, discovered: [...new Set([...discovered as RecipeId[], ...roster.map(u => recipeFor(u.design)!.id)])], nextId: Math.max(1, nextId), battles: count(v.battles, '戦闘回数'), moved: count(v.moved, '療養棟の記録') };
 }
 
 const key = 'monster-factory/save';
 export function writeSave(g: GameData): boolean {
-  try { localStorage.setItem(key, JSON.stringify(toSave(g))); return true; } catch { return false; }
+  try {
+    const old = localStorage.getItem(key);
+    if (old && JSON.parse(old).version === 2 && !localStorage.getItem(`${key}/v2-backup`)) localStorage.setItem(`${key}/v2-backup`, old);
+    localStorage.setItem(key, JSON.stringify(toSave(g))); return true;
+  } catch { return false; }
 }
 /** 保存がなければ null。壊れている場合は例外。 */
 export function readSave(): GameData | null {

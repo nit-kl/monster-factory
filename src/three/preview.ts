@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import type { Design } from '../domain/design';
 import { canvasTexture, cyl, glow, mesh, metal, Stage, std, torus } from './kit';
-import { buildMonster, type Monster } from './monster';
+import { buildMonster, buildMaterial, disposeObject, type Monster } from './monster';
 
 /** 設計台の立体プレビュー。設計を変えるたびに作り直し、ドラッグで回せる。 */
 export class Preview {
   private stage: Stage; private monster: Monster | null = null; private pivot = new THREE.Group();
   private angle = 0.5; private drag: number | null = null; private target = 1; private dist = 5.2;
+  private samples = new THREE.Group();
   constructor(host: HTMLElement) {
     this.stage = new Stage(host, { bloom: 0.5, fov: 36, background: 0x0d0918 });
     const s = this.stage.scene;
@@ -18,7 +19,7 @@ export class Preview {
     const floor = mesh(new THREE.CircleGeometry(7, 64), std(0xffffff, { map: grid, emissive: 0x2a5a8a, emissiveMap: grid, emissiveIntensity: 0.7, roughness: 0.6 }), [0, 0, 0], [-Math.PI / 2, 0, 0]);
     floor.castShadow = false;
     s.add(floor, mesh(cyl(1.5, 1.7, 0.24, 48), metal(0x2a2433, 0.5), [0, 0.12, 0]), mesh(torus(1.5, 0.05, 64), metal(0xc9983f), [0, 0.24, 0], [Math.PI / 2, 0, 0]), mesh(torus(1.1, 0.02, 64), glow(0x7ad0ff, 1.6), [0, 0.245, 0], [Math.PI / 2, 0, 0]));
-    this.pivot.position.y = 0.24; s.add(this.pivot);
+    this.pivot.position.y = 0.24; this.pivot.add(this.samples); s.add(this.pivot);
     s.add(new THREE.HemisphereLight(0xa898e0, 0x1a1020, 1.1));
     const key = new THREE.DirectionalLight(0xfff4e0, 2.2); key.position.set(3, 6, 5); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
     Object.assign(key.shadow.camera, { left: -3, right: 3, top: 4, bottom: -1 });
@@ -38,11 +39,16 @@ export class Preview {
     this.stage.camera.position.set(0, 2, 6);
     this.stage.start();
   }
-  setDesign(d: Design) {
-    if (this.monster) this.pivot.remove(this.monster.root);
-    this.monster = buildMonster(d); this.monster.setAwake(1);
-    this.pivot.add(this.monster.root);
-    this.target = 0.1 + this.monster.height * 0.48; this.dist = 5.2 + this.monster.height * 1.7;
+  setDesign(d: Design, revealed = true) {
+    this.monster?.dispose(); this.monster = null;
+    [...this.samples.children].forEach(disposeObject);
+    if (revealed) {
+      this.monster = buildMonster(d); this.monster.setAwake(1); this.pivot.add(this.monster.root);
+      this.target = 0.24 + this.monster.height * 0.48; this.dist = 5.2 + this.monster.height * 0.7;
+    } else {
+      [d.first, d.second].forEach((id, i) => { const g = buildMaterial(id); g.position.set(i ? 0.7 : -0.7, 1, 0); g.scale.setScalar(1.4); this.samples.add(g); });
+      this.target = 1; this.dist = 6;
+    }
   }
   dispose() { this.stage.dispose(); }
 }

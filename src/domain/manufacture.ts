@@ -1,4 +1,3 @@
-import { processes, type ProcessId } from '../data/parts';
 import { calculate, unitName, type Design, type Stats } from './design';
 
 export type Unit = { id: number; name: string; design: Design; stats: Stats; wins: number; losses: number };
@@ -16,16 +15,16 @@ export function addToHangar(roster: Unit[], unit: Unit): { roster: Unit[]; moved
 export const lineStages = ['culture', 'drain', 'toGraft', 'graftAttack', 'graftDefense', 'toInspect', 'inspect', 'toPad', 'reveal'] as const;
 export type LineStage = (typeof lineStages)[number];
 export const stageGroup: Record<LineStage, 0 | 1 | 2 | 3> = { culture: 0, drain: 0, toGraft: 1, graftAttack: 1, graftDefense: 1, toInspect: 2, inspect: 2, toPad: 3, reveal: 3 };
-export const groupNames = ['身体培養', '器官接合', '品質検査', '完成'] as const;
+export const groupNames = ['材料共鳴', '生命形成', '能力測定', '誕生'] as const;
 
-export function stageDurations(process: ProcessId): Record<LineStage, number> {
-  return { culture: processes[process].cultureMs, drain: 1600, toGraft: 1800, graftAttack: 3400, graftDefense: 3400, toInspect: 1700, inspect: 3400, toPad: 1700, reveal: 2600 };
+export function stageDurations(): Record<LineStage, number> {
+  return { culture: 4200, drain: 1000, toGraft: 1200, graftAttack: 2000, graftDefense: 2000, toInspect: 1000, inspect: 1800, toPad: 1000, reveal: 2600 };
 }
-export function totalDuration(process: ProcessId) {
-  return Object.values(stageDurations(process)).reduce((a, b) => a + b, 0);
+export function totalDuration() {
+  return Object.values(stageDurations()).reduce((a, b) => a + b, 0);
 }
-export function lineAt(process: ProcessId, ms: number): { stage: LineStage; index: number; local: number; done: boolean; overall: number } {
-  const d = stageDurations(process), total = totalDuration(process);
+export function lineAt(ms: number): { stage: LineStage; index: number; local: number; done: boolean; overall: number } {
+  const d = stageDurations(), total = totalDuration();
   let t = Math.max(0, ms);
   for (let index = 0; index < lineStages.length; index++) {
     const stage = lineStages[index];

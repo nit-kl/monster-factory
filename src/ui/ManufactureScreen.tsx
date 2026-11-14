@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { cast } from '../data/cast';
 import { lineComments } from '../data/lineComments';
-import { calculate, unitName } from '../domain/design';
+import { calculate, unitName, recipeFor } from '../domain/design';
+import { MonsterIcon, MaterialIcon } from './RecipeArt';
 import { groupNames, lineAt, lineStages, stageGroup, totalDuration } from '../domain/manufacture';
 import { useGame } from '../state/store';
 import { LineScene } from '../three/line';
@@ -17,13 +18,14 @@ export function ManufactureScreen() {
     scene.current = s;
     const d = useGame.getState().building;
     if (!s || !d) return;
-    s.onTick = t => { if (t - last.current > 80 || t >= totalDuration(d.process)) { last.current = t; setMs(t); } };
+    s.onTick = t => { if (t - last.current > 80 || t >= totalDuration()) { last.current = t; setMs(t); } };
     s.run(d);
   }, []);
   if (!building) return null;
-  const total = totalDuration(building.process), at = lineAt(building.process, ms), group = stageGroup[at.stage], stats = calculate(building);
+  const total = totalDuration(), at = lineAt(ms), group = stageGroup[at.stage], stats = calculate(building);
   const comment = [...lineStages.slice(0, at.index + 1)].reverse().map(s => comments[s]).find(Boolean);
   const measured = at.index >= 6;
+  const recipe = recipeFor(building)!;
   return (
     <div className="screen manufacture" data-testid="manufacture-screen" data-done={at.done}>
       <Canvas3D className="fill" create={h => new LineScene(h)} onReady={ready} />
@@ -37,7 +39,8 @@ export function ManufactureScreen() {
       </header>
       <aside className="spec panel">
         <small>製造中の設計</small>
-        <h2>{unitName(building, nextId)}</h2>
+        <h2>{measured ? unitName(building, nextId) : '新しい命を形成中'}</h2>
+        <div className="material-pair"><MaterialIcon id={building.first} /><span>×</span><MaterialIcon id={building.second} /></div>
         <p>{designLabel(building)}</p>
         {measured ? <><StatBlock stats={stats} /><Tags stats={stats} /></> : <p className="note">性能は品質検査で測定します。</p>}
       </aside>
@@ -50,7 +53,9 @@ export function ManufactureScreen() {
       <footer className="hud-bottom right">
         {at.done ? (
           <div className="finished panel">
+            <MonsterIcon id={recipe.id} />
             <small>完成</small><h2>{unitName(building, nextId)}</h2>
+            <p>{recipe.epithet}</p><strong>{recipe.skill}</strong><p>{recipe.skillNote}</p>
             <button className="big primary" onClick={complete} data-testid="to-hangar"><b>格納庫へ</b><small>個体を受け取る</small></button>
           </div>
         ) : (

@@ -1,6 +1,6 @@
 import { bg, choice, clear, fx, narr, opt, say, title, type Line } from '../../domain/story';
 
-// 序章「特命」。台本草案（docs/script/SCRIPT_CH00_CH01.md）に基づく。
+// 序章「特命」。関係性の改稿方針は docs/STORY_TRUST_ARC.md。
 export const prologue: readonly Line[] = [
   bg('black'),
   title('序章', '特命'),
@@ -23,7 +23,7 @@ export const prologue: readonly Line[] = [
   ),
   say('zelva', '陛下は三年前に崩御された。'),
   fx('flash'),
-  say('zelva', 'あの帳の奥におわすのは、影だ。'),
+  say('zelva', 'あの帳の奥におわすのは、影武者だ。'),
   narr('部屋の空気が、ひどく冷たくなった。'),
   say('zelva', '魔物の諸部族が忠誠を誓ったのは、魔王軍ではない。陛下おひとりにだ。'),
   say('zelva', '崩御が漏れれば、軍は一夜で砂になる。勇者軍は、その砂を踏んで城まで来るだろう。'),
@@ -37,6 +37,8 @@ export const prologue: readonly Line[] = [
   say('zelva', 'お前を選んだのは、優秀だからではない。'),
   say('zelva', 'しくじったとき、誰もお前の名を覚えておらぬからだ。'),
   say('zelva', '表向きは工場の再建。工場の者にも明かすな。まずは、あの工場がまだ“物を作れる”ことを示せ。'),
+  say('zelva', '任命状があれば設備は使える。だが、あそこの者どもがお前に心まで預けるとは思うな。'),
+  narr('書状には、工場側の署名欄がなかった。'),
   say('zelva', '勇者軍の先遣が、すでに辺境へ向かっておる。工場が落ちれば、計画もそこで終わりだ。'),
   say('zelva', 'それから。書状には、陛下の遺品が一枚入っておる。'),
   narr('封を切らずとも、厚みで分かる。紙が一枚。'),

@@ -1,9 +1,8 @@
 import * as THREE from 'three';
-import { processes } from '../data/parts';
-import type { Design } from '../domain/design';
+import { recipeFor, type Design } from '../domain/design';
 import { lineAt, totalDuration, type LineStage } from '../domain/manufacture';
 import { ball, box, canvasTexture, cone, cyl, ease, glow, lerp, mesh, metal, Particles, span, Stage, std, torus } from './kit';
-import { buildMonster, type Monster } from './monster';
+import { buildMonster, buildMaterial, disposeObject, type Monster } from './monster';
 
 // 製造ラインの3D舞台。培養槽 → 器官接合機 → 検査門 → 出撃台。
 // 時間表（domain/manufacture）の経過ミリ秒だけを見て、全体の状態を毎フレーム組み立てる。
@@ -18,6 +17,7 @@ export class LineScene {
   onTick: (ms: number) => void = () => {};
   private ms = 0; private running = false; private idle = true; private snap = true; private lastStage: LineStage | 'idle' = 'idle';
   private design: Design | null = null; private monster: Monster | null = null;
+  private samples = new THREE.Group();
   private cart = new THREE.Group(); private glass!: THREE.Mesh; private fluid!: THREE.Mesh; private fluidMat!: THREE.MeshStandardMaterial;
   private tankLight!: THREE.PointLight; private bubbles!: THREE.InstancedMesh; private bubbleSeed: number[] = [];
   private arms: Arm[] = []; private ring!: THREE.Mesh; private curtain!: THREE.Mesh; private lamps: THREE.MeshStandardMaterial[] = [];
@@ -28,7 +28,7 @@ export class LineScene {
   constructor(host: HTMLElement) {
     this.stage = new Stage(host, { bloom: 0.42 });
     this.buildHall(); this.buildTank(); this.buildGraft(); this.buildGate(); this.buildPad();
-    this.stage.scene.add(this.cart, this.sparks.points, this.motes.points);
+    this.stage.scene.add(this.cart, this.sparks.points, this.motes.points, this.samples);
     this.buildCart();
     this.stage.onFrame = (dt, t, real) => this.frame(dt, t, real);
     this.stage.start();
@@ -41,16 +41,18 @@ export class LineScene {
   run(design: Design) {
     this.setMonster(design); this.idle = false; this.running = true; this.ms = 0; this.snap = true; this.lastStage = 'idle';
   }
-  skip() { if (this.design) { this.ms = totalDuration(this.design.process); this.snap = true; } }
+  skip() { if (this.design) { this.ms = totalDuration(); this.snap = true; } }
   dispose() { this.stage.dispose(); }
 
   private setMonster(design: Design | null) {
-    if (this.monster) { for (const g of [this.monster.root, this.monster.attack, this.monster.defense]) g.removeFromParent(); }
+    this.monster?.dispose();
+    [...this.samples.children].forEach(disposeObject);
+    if (design) [design.first, design.second].forEach(id => this.samples.add(buildMaterial(id)));
     this.design = design; this.monster = design ? buildMonster(design) : null;
     if (this.monster) {
       const m = this.monster;
       // 器官が置き台にめり込まないよう、持ち手から底までの高さを測っておく。
-      this.lift = [[m.attack, m.attackHandle] as const, [m.defense, m.defenseHandle] as const].map(([g, h]) => h.y - new THREE.Box3().setFromObject(g).min.y);
+      this.lift = [0.4, 0.4];
       this.stage.scene.add(m.root);
     }
   }
@@ -191,7 +193,7 @@ export class LineScene {
   // ---- 毎フレーム ----
   private frame(dt: number, t: number, real: number) {
     if (this.running && this.design) {
-      const total = totalDuration(this.design.process);
+      const total = totalDuration();
       this.ms = Math.min(total, this.ms + real * 1000 * this.speed); // 実時間で進め、描画が遅い環境でも所要時間を保つ
       this.onTick(this.ms);
       if (this.ms >= total) this.running = false;
@@ -234,6 +236,7 @@ export class LineScene {
   }
 
   private applyIdle(dt: number, t: number) {
+    this.samples.visible = false;
     this.setTank(1, 0, 0x9b6bff, t, 0.5);
     this.arms.forEach(a => this.setArm(a, null));
     this.ring.visible = this.curtain.visible = false;
@@ -244,7 +247,7 @@ export class LineScene {
     if (m) {
       m.root.add(m.attack, m.defense); m.attack.position.set(0, 0, 0); m.defense.position.set(0, 0, 0); m.attack.scale.setScalar(1); m.defense.scale.setScalar(1);
       m.attack.visible = m.defense.visible = true;
-      const k = this.design?.process === 'rapid' ? 0.93 : 1;
+      const k = 1;
       m.root.scale.setScalar(k); m.root.position.set(PAD, DECK, 0); m.root.rotation.y = 0.2 + Math.sin(t * 0.4) * 0.25; m.setAwake(1);
     }
     // 出撃台の個体を手前に、ライン全体を奥に収める。右側は格納庫の欄に隠れるので、被写体は中央より左に置く。
@@ -253,78 +256,42 @@ export class LineScene {
   }
 
   private apply(dt: number, real: number, t: number) {
-    const d = this.design!, m = this.monster!, { stage, index, local } = lineAt(d.process, this.ms), color = processes[d.process].fluid;
-    const k = d.process === 'rapid' ? 0.93 : 1, e = ease(local);
+    const d = this.design!, m = this.monster!, r = recipeFor(d)!;
+    const { stage, index, local } = lineAt(this.ms), e = ease(local);
+    const color = new THREE.Color(r.color).getHex();
     const entered = stage !== this.lastStage; this.lastStage = stage;
-    // 台車
     const cartX = index <= 1 ? TANK : stage === 'toGraft' ? lerp(TANK, GRAFT, e) : index <= 4 ? GRAFT : stage === 'toInspect' ? lerp(GRAFT, GATE, e) : stage === 'inspect' ? GATE : stage === 'toPad' ? lerp(GATE, PAD, e) : PAD;
     this.cart.position.set(cartX, 0, 0);
-    // 培養槽
-    const level = stage === 'culture' ? 1 : stage === 'drain' ? 1 - ease(span(local, 0, 0.6)) : 0;
-    const lift = stage === 'culture' ? 0 : stage === 'drain' ? ease(span(local, 0.45, 1)) : index === 2 ? 1 - ease(span(local, 0.6, 1)) : 0;
-    this.setTank(index >= 3 ? 1 : level, lift, index >= 3 ? 0x9b6bff : color, t, d.process === 'rapid' ? 2.2 : d.process === 'heated' ? 1.3 : 0.8);
-    // 個体
-    const grow = stage === 'culture' ? 0.04 + 0.96 * ease(span(local, 0.05, 0.95)) : 1;
-    const float = stage === 'culture' ? 0.9 * (1 - grow * 0.4) + Math.sin(t * 1.4) * 0.06 : stage === 'drain' ? 0.54 * (1 - ease(span(local, 0, 0.6))) : 0;
-    const pulse = stage === 'culture' ? 1 + Math.sin(t * 6) * 0.03 * grow : 1;
-    m.root.scale.setScalar(k * grow * pulse); m.root.position.set(cartX, DECK + float, 0);
-    m.root.rotation.y = stage === 'culture' ? Math.sin(t * 0.8) * 0.5 : stage === 'reveal' ? Math.sin(span(local, 0.3, 1) * Math.PI * 2) * 0.4 : 0;
-    if (stage === 'culture' && Math.random() < dt * 6) this.motes.burst(new THREE.Vector3(TANK + (Math.random() - 0.5) * 2, 0.8 + Math.random() * 2.4, (Math.random() - 0.5) * 2), 1, 0.3, 1);
-    // 器官の接合
-    const base = new THREE.Vector3(GRAFT, DECK, 0);
-    const organs = [{ g: m.attack, h: m.attackHandle, at: 3, arm: this.arms[0], lift: this.lift[0] }, { g: m.defense, h: m.defenseHandle, at: 4, arm: this.arms[1], lift: this.lift[1] }];
-    for (const o of organs) {
-      const final = base.clone().add(o.h.clone().multiplyScalar(k));
-      if (index > o.at) { // 接合済み：身体の一部として動く
-        if (o.g.parent !== m.root) m.root.add(o.g);
-        o.g.position.set(0, 0, 0); o.g.scale.setScalar(1); this.setArm(o.arm, null);
-        continue;
-      }
-      if (o.g.parent !== this.stage.scene) this.stage.scene.add(o.g);
-      o.g.scale.setScalar(k);
-      const tray = o.arm.tray.clone().setY(1.1 + o.lift * k);
-      let w = tray.clone(), tip: THREE.Vector3 | null = null;
-      if (index === o.at) {
-        const hover = new THREE.Vector3(final.x, Math.max(3.5, final.y + 1.2), final.z);
-        const up = tray.clone().setY(hover.y);
-        if (local < 0.22) w.lerpVectors(tray, up, ease(span(local, 0.04, 0.22)));
-        else if (local < 0.55) w.lerpVectors(up, hover, ease(span(local, 0.22, 0.55)));
-        else w.lerpVectors(hover, final, ease(span(local, 0.55, 0.78)));
-        tip = local < 0.82 ? w.clone() : w.clone().lerp(new THREE.Vector3(o.arm.railX, 3.9, w.z), ease(span(local, 0.82, 1)));
-        if (local >= 0.76 && local < 0.9 && Math.random() < dt * 40) this.sparks.burst(final, 8, 3.2);
-      }
-      o.g.position.copy(w.clone().sub(o.h.clone().multiplyScalar(k)));
-      o.g.rotation.y = index === o.at ? (1 - ease(span(local, 0.2, 0.7))) * 1.2 : 1.2;
-      this.setArm(o.arm, tip);
+    this.setTank(index === 0 ? 0.8 : index === 1 ? 0.8 * (1 - e) : 0, index === 1 ? e : index === 2 ? 1 : 0, color, t, 0.8);
+    // 二材料が渦を巻き、融合してから身体が結晶化する。選択操作は不要。
+    this.samples.visible = index < 4;
+    this.samples.children.forEach((g, i) => {
+      const phase = t * 1.8 + i * Math.PI, radius = index < 3 ? 1.05 : 1.05 * (1 - e);
+      g.position.set(cartX + Math.cos(phase) * radius, 1.5 + Math.sin(phase * 1.6) * 0.22, Math.sin(phase) * radius);
+      g.rotation.set(t * 0.3, t, 0); g.scale.setScalar(index === 3 ? 1 - e * 0.98 : 1);
+    });
+    const growth = index < 3 ? 0 : index === 3 ? e * 0.5 : index === 4 ? 0.5 + e * 0.5 : 1;
+    m.root.visible = growth > 0.01;
+    m.root.scale.setScalar(Math.max(0.01, growth));
+    m.root.position.set(cartX, DECK, 0); m.root.rotation.y = index <= 4 ? t * 0.45 : stage === 'reveal' ? Math.sin(e * Math.PI) * 0.4 : 0;
+    this.arms.forEach(a => this.setArm(a, index === 3 || index === 4 ? new THREE.Vector3(a.railX, 2.6, 0) : null));
+    const forming = index === 3 || index === 4;
+    this.ring.visible = forming || stage === 'inspect'; this.curtain.visible = stage === 'inspect';
+    this.ring.position.set(cartX, 0.6 + (Math.sin(t * 3) * 0.5 + 0.5) * (m.height + 0.3), 0);
+    (this.ring.material as THREE.MeshBasicMaterial).color.setHex(forming ? color : 0x7dffb0);
+    this.curtain.position.x = GATE + Math.sin(t * 2) * 1.1;
+    if (forming && Math.random() < dt * 18) {
+      (this.motes.points.material as THREE.PointsMaterial).color.setHex(color);
+      this.motes.burst(new THREE.Vector3(cartX, 1.1, 0), 7, 1.7, 0.4);
     }
-    organs.forEach(o => { if (index > o.at) o.g.rotation.y = 0; });
-    // 検査
-    const scanning = stage === 'inspect';
-    this.ring.visible = this.curtain.visible = scanning;
-    if (scanning) {
-      this.ring.position.y = 0.5 + (0.5 - 0.5 * Math.cos(local * Math.PI * 4)) * (m.height + 0.6);
-      this.curtain.position.x = GATE + Math.sin(local * Math.PI * 3) * 1.4;
-    }
-    const passed = index > 6 || (scanning && local > 0.86), lamp = passed ? 0x7dffb0 : scanning ? (Math.sin(t * 14) > 0 ? 0xffb347 : 0x6a4a20) : 0xffb347;
-    this.lamps.forEach(l => { l.color.setHex(lamp); l.emissive.setHex(lamp); });
-    if (stage === 'inspect' && entered) this.motes.burst(new THREE.Vector3(GATE, 1.2, 0), 20, 1.2, 1);
-    // 完成
-    const reveal = stage === 'reveal' ? local : 0;
-    m.setAwake(stage === 'reveal' ? ease(span(local, 0.18, 0.4)) : 0.08);
-    if (stage === 'reveal') m.root.position.y = DECK + Math.abs(Math.sin(span(local, 0.42, 0.8) * Math.PI * 2)) * 0.28;
-    this.padLight.intensity = stage === 'reveal' ? 80 * ease(span(local, 0, 0.3)) : 0;
-    this.padRing.emissiveIntensity = 1.2 + reveal * 1.2;
-    if (stage === 'reveal' && entered) this.sparks.burst(new THREE.Vector3(PAD, 0.4, 0), 40, 3.4, 1.4);
-    // カメラ
-    const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
-    let pos: THREE.Vector3, look: THREE.Vector3;
-    if (stage === 'culture') { const a = -0.55 + local * 1.0; pos = V(TANK + Math.sin(a) * 8.2, 2.9 + local * 0.5, Math.cos(a) * 8.2); look = V(TANK, 2.0, 0); }
-    else if (stage === 'drain') { pos = V(TANK + 2.6, 2.2, 6.4); look = V(TANK, 1.5, 0); }
-    else if (stage === 'toGraft' || stage === 'toInspect' || stage === 'toPad') { pos = V(cartX + 1.2, 2.7, 8.6); look = V(cartX, 1.4, 0); }
-    else if (stage === 'graftAttack') { pos = V(GRAFT - 3.6 + local * 1.2, 3.1, 6.6 - span(local, 0.5, 0.8) * 1.6); look = V(GRAFT, 1.7, -0.5); }
-    else if (stage === 'graftDefense') { pos = V(GRAFT + 3.6 - local * 1.2, 3.1, 6.6 - span(local, 0.5, 0.8) * 1.6); look = V(GRAFT, 1.7, -0.5); }
-    else if (stage === 'inspect') { pos = V(GATE - 2.6 + local * 1.4, 2.3, 7.4); look = V(GATE, 1.4, 0); }
-    else { const a = -0.75 + local * 0.9; pos = V(PAD + Math.sin(a) * 6.2, 2.0, Math.cos(a) * 6.2); look = V(PAD, 1.15, 0); }
-    this.camera(pos, look, real);
+    this.lamps.forEach(l => { const c = index > 6 ? 0x7dffb0 : 0xffb347; l.color.setHex(c); l.emissive.setHex(c); });
+    m.setAwake(index >= 6 ? 1 : 0.08);
+    m.strike(stage === 'reveal' ? local : 0, true);
+    this.padLight.intensity = stage === 'reveal' ? 80 : 0;
+    this.padRing.emissive.setHex(color);
+    if (stage === 'reveal' && entered) { (this.sparks.points.material as THREE.PointsMaterial).color.setHex(color); this.sparks.burst(new THREE.Vector3(PAD, 0.5, 0), 100, 3, 1.2); }
+    const distance = stage === 'reveal' ? 6.8 : 8;
+    const a = stage === 'culture' ? -0.4 + local * 0.8 : stage === 'reveal' ? -0.65 + local * 0.9 : 0.3;
+    this.camera(new THREE.Vector3(cartX + Math.sin(a) * distance, 2.7, Math.cos(a) * distance), new THREE.Vector3(cartX, 1.5, 0), real);
   }
 }

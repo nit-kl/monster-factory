@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { EnemyId } from '../data/enemies';
 import { simulate, type BattleResult } from '../domain/battle';
-import { initialDesign, overCapacity, unlocked, type Design } from '../domain/design';
+import { initialDesign, overCapacity, unlocked, recipeFor, type Design } from '../domain/design';
 import { addToHangar, makeUnit, type Unit } from '../domain/manufacture';
 import { battleFinished, dayOf, initialProgress, manufactured, sceneFinished, type Progress } from '../domain/progress';
 import { writeSave, type GameData } from '../domain/save';
@@ -17,7 +17,7 @@ type State = GameData & {
   startManufacture: () => void; completeManufacture: () => void;
   startBattle: (unitId: number, enemy: EnemyId) => void; concludeBattle: () => void;
 };
-const fresh = (): GameData => ({ progress: initialProgress, design: { ...initialDesign }, roster: [], nextId: 1, battles: 0, moved: 0 });
+const fresh = (): GameData => ({ progress: initialProgress, design: { ...initialDesign }, roster: [], nextId: 1, battles: 0, moved: 0, discovered: [] });
 const transient = { sub: 'hub' as Sub, building: null, lastBuilt: null, battle: null };
 
 export const useGame = create<State>((set, get) => ({
@@ -33,7 +33,7 @@ export const useGame = create<State>((set, get) => ({
     if (!s.building) return {};
     const unit = makeUnit(s.building, s.nextId);
     const { roster, moved } = addToHangar(s.roster, unit);
-    return { roster, moved: s.moved + moved, nextId: s.nextId + 1, lastBuilt: unit.id, building: null, sub: 'hub', progress: manufactured(s.progress) };
+    return { roster, discovered: [...new Set([...s.discovered, recipeFor(s.building)!.id])], moved: s.moved + moved, nextId: s.nextId + 1, lastBuilt: unit.id, building: null, sub: 'hub', progress: manufactured(s.progress) };
   }),
   startBattle: (unitId, enemy) => {
     const s = get(), unit = s.roster.find(u => u.id === unitId);
@@ -52,7 +52,7 @@ export const useGame = create<State>((set, get) => ({
   }),
 }));
 
-export const snapshot = (s: GameData): GameData => ({ progress: s.progress, design: s.design, roster: s.roster, nextId: s.nextId, battles: s.battles, moved: s.moved });
+export const snapshot = (s: GameData): GameData => ({ progress: s.progress, design: s.design, roster: s.roster, nextId: s.nextId, battles: s.battles, moved: s.moved, discovered: s.discovered });
 /** 進行が変わるたびに自動保存する。 */
 export function enableAutosave() {
   return useGame.subscribe((s, prev) => {

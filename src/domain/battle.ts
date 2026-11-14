@@ -1,12 +1,13 @@
 import { enemies, type EnemyId } from '../data/enemies';
-import { effects } from '../data/parts';
 import type { Stats } from './design';
+const effects = { coldWeakness: 10, poison: 7, regen: 5 };
 
 export type BattleEvent = {
   turn: number;
   actor: 'monster' | 'enemy' | 'effects';
   damage: number; blocked: number; selfBurn: number; cold: number; poison: number; heal: number; extra: boolean;
   monsterHp: number; enemyHp: number;
+  special: boolean; absorbed: number;
 };
 export type BattleResult = {
   enemy: EnemyId; seed: number; outcome: 'win' | 'loss' | 'draw'; turns: number; log: BattleEvent[];
@@ -19,27 +20,31 @@ export function simulate(stats: Stats, enemyId: EnemyId, seed: number): BattleRe
   const enemy = enemies[enemyId];
   let rng = seed >>> 0;
   const roll = () => { rng = (Math.imul(rng, 1664525) + 1013904223) >>> 0; return Math.floor((rng / 4294967296) * 5) - 2; };
-  let monsterHp = stats.hp, enemyHp: number = enemy.hp, poisoned = false, turn = 0;
+  let monsterHp = stats.hp, enemyHp: number = enemy.hp, poisoned = false, turn = 0, attacks = 0;
   const log: BattleEvent[] = [];
   const enemyFirst = enemy.speed > stats.speed;
   const enemyShots = enemy.rapidFire > 0 && enemy.speed - stats.speed >= enemy.rapidFire ? 2 : 1;
   const push = (e: Partial<BattleEvent> & Pick<BattleEvent, 'actor'>) =>
-    log.push({ turn, damage: 0, blocked: 0, selfBurn: 0, cold: 0, poison: 0, heal: 0, extra: false, ...e, monsterHp, enemyHp });
+    log.push({ turn, damage: 0, blocked: 0, selfBurn: 0, cold: 0, poison: 0, heal: 0, extra: false, special: false, absorbed: 0, ...e, monsterHp, enemyHp });
   const monsterAct = () => {
-    const raw = Math.max(1, stats.attack + roll());
-    const damage = Math.min(enemyHp, Math.max(1, raw - enemy.armor));
+    const special = ++attacks % 3 === 0;
+    const raw = Math.max(1, stats.attack + roll() + (special ? stats.bonus : 0));
+    const armor = special ? 0 : enemy.armor;
+    const damage = Math.min(enemyHp, Math.max(1, raw - armor));
     enemyHp -= damage;
     const selfBurn = Math.min(monsterHp, stats.selfBurn);
     monsterHp -= selfBurn;
     if (stats.poison) poisoned = true;
-    push({ actor: 'monster', damage, selfBurn, blocked: Math.min(enemy.armor, raw - 1) });
+    push({ actor: 'monster', damage, selfBurn, special, blocked: Math.min(armor, raw - 1) });
   };
   const enemyAct = () => {
     for (let shot = 0; shot < enemyShots && monsterHp > 0; shot++) {
       const cold = enemy.element === 'cold' && stats.coldWeak ? effects.coldWeakness : 0;
-      const damage = Math.min(monsterHp, Math.max(1, enemy.attack + roll()) + cold);
+      const raw = Math.max(1, enemy.attack + roll());
+      const absorbed = Math.min(stats.armor, raw - 1);
+      const damage = Math.min(monsterHp, raw - absorbed + cold);
       monsterHp -= damage;
-      push({ actor: 'enemy', damage, cold: Math.min(cold, damage), extra: shot > 0 });
+      push({ actor: 'enemy', damage, absorbed, cold: Math.min(cold, damage), extra: shot > 0 });
     }
   };
   for (turn = 1; turn <= 40 && monsterHp > 0 && enemyHp > 0; turn++) {
@@ -66,8 +71,8 @@ export function simulate(stats: Stats, enemyId: EnemyId, seed: number): BattleRe
 }
 
 export function describe(e: BattleEvent, enemyName: string): string {
-  if (e.actor === 'effects') return [e.poison ? `毒が回り、${enemyName}に ${e.poison}` : '', e.heal ? `再生核が ${e.heal} 回復` : ''].filter(Boolean).join(' ／ ');
-  if (e.actor === 'monster') return `味方の攻撃 ${e.damage}${e.selfBurn ? ` ／ 自分の炎で ${e.selfBurn}` : ''}`;
+  if (e.actor === 'effects') return [e.poison ? `毒が回り、${enemyName}に ${e.poison}` : '', e.heal ? `生命の再生で ${e.heal} 回復` : ''].filter(Boolean).join(' ／ ');
+  if (e.actor === 'monster') return `${e.special ? '固有技・盾を貫通' : '味方の攻撃'} ${e.damage}`;
   return `${enemyName}の${e.extra ? '追撃' : '攻撃'} ${e.damage}${e.cold ? `（冷気の弱点 +${e.cold}）` : ''}`;
 }
 
@@ -79,10 +84,10 @@ export function diagnose(r: BattleResult): Finding[] {
     const pct = Math.round((t.selfBurn / Math.max(1, hurt)) * 100);
     out.push({ who: 'lisette', title: `受けた損害の ${pct}% が自分の炎`, text: lost ? '火炎袋の熱を防ぐ手立てが必要です。石殻で包むか、高温培養で熱に強く育ててください。' : '勝ちましたが、自分の炎で削られています。耐熱の備えがあれば、もっと余裕が出ます。' });
   }
-  if (t.extraShots > 0) out.push({ who: 'vargas', title: `追撃を ${t.extraShots} 回受けた`, text: '足が遅すぎて、1巡に2回射られてる。重い殻を外すか速い身体に替えて、速度の差を6未満にしろ。' });
-  if (t.cold > 0) out.push({ who: 'poyon', title: `冷気の弱点で ${t.cold} の追加損害`, text: '高温で育てた子は寒さに弱いんです。別の培養工程にして、熱は石殻で防ぐ手もありますよ。' });
+  if (t.extraShots > 0) out.push({ who: 'vargas', title: `追撃を ${t.extraShots} 回受けた`, text: '重い鉄の身体は弓兵に追いつけねえ。古樹の種と竜の血、または星硝子と月光を試せ。速度9以上なら追撃は受けねえ。' });
+  if (t.cold > 0) out.push({ who: 'poyon', title: `冷気の弱点で ${t.cold} の追加損害`, text: '竜の血を使った子は、冷気で余計に傷つきます。亡霊の灯と星硝子なら、冷たい環境にも強い子が生まれそうです。' });
   if (lost && r.enemyFirst && !t.extraShots) out.push({ who: 'orphen', title: '毎巡、先手を取られた', text: '相手より遅いと、先に殴られ続けるのじゃ。速度を上げるか、耐久力で受け切るか、どちらかを選びたまえ。' });
-  if (lost && r.enemyHp > 0 && !out.length) out.push({ who: 'orphen', title: `相手の耐久力が ${r.enemyHp} 残った`, text: '純粋に火力か耐久力が足りておらん。攻めの器官か身体を見直すのじゃ。' });
+  if (lost && r.enemyHp > 0 && !out.length) out.push({ who: 'orphen', title: `相手の耐久力が ${r.enemyHp} 残った`, text: '別の配合を試そう。剣士には鉄くずと竜の血の一撃が有効じゃ。固有技は3回目の攻撃で自動発動し、盾を貫くぞ。' });
   if (r.outcome === 'draw') out.push({ who: 'lisette', title: '決着がつかなかった', text: '40巡かけても倒しきれませんでした。攻撃力を上げてください。' });
   if (!lost && !out.length) out.push({ who: 'lisette', title: `耐久力を ${r.monsterHp} 残して勝利`, text: '設計の狙いどおりです。記録しておきます。' });
   return out;

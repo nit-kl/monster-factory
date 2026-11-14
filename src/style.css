@@ -242,3 +242,45 @@ button.ghost { background: transparent; border-color: transparent; display: flex
   .hangar { width: 270px; } .objective { width: 34vw; } .design-grid { grid-template-columns: 400px 1fr 280px; }
   button.big { min-width: 150px; padding: 10px 14px; }
 }
+/* 材料配合・発見ノート */
+.synthesis-grid { display: grid; grid-template-columns: 290px minmax(320px, 1fr) 330px; gap: 16px; padding: 18px 24px; flex: 1; min-height: 0; }
+.material-shelf, .recipe-notes { overflow-y: auto; min-height: 0; }
+.material-shelf h2, .recipe-notes h2 { font-size: 1.05rem; }
+.material-icon { display: inline-grid; place-items: center; width: 48px; height: 48px; flex: 0 0 48px; border: 1px solid currentColor; background: radial-gradient(circle, #483451, #100c1a); border-radius: 12px; font-family: var(--serif); font-size: 1.3rem; box-shadow: inset 0 0 16px #ffffff0a; }
+.mix-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+.mix-slots button { display: grid; justify-items: center; gap: 8px; padding: 12px 6px; }
+.mix-slots small { font-size: 0.72rem; letter-spacing: 0.15em; }
+.mix-slots strong { font-size: 0.9rem; }
+.material-list { display: grid; gap: 9px; }
+.material-list button { display: flex; gap: 12px; align-items: center; text-align: left; padding: 10px; }
+.material-list small, .recipe-book small { display: block; font-size: 0.75rem; color: var(--muted); line-height: 1.5; margin-top: 3px; }
+.synthesis-center { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.synthesis-center .design-preview { flex: 1; min-height: 280px; }
+.specimen-label { position: absolute; top: 22px; left: 24px; pointer-events: none; }
+.specimen-label small { letter-spacing: 0.3em; color: var(--gold); }
+.specimen-label h2 { font-family: var(--serif); font-size: 1.7rem; }
+.reaction { min-height: 100px; }
+.reaction strong { color: var(--gold); } .reaction p { margin-top: 6px; color: var(--muted); }
+.recipe-notes { display: flex; flex-direction: column; gap: 16px; }
+.recipe-notes > p { color: var(--muted); font-size: 0.88rem; }
+.recipe-notes .big { width: 100%; min-width: 0; }
+.recipe-notes h3 { font-size: 0.9rem; color: var(--gold); }
+.recipe-book { display: grid; gap: 8px; }
+.recipe-book button { display: flex; align-items: center; gap: 10px; padding: 9px; text-align: left; }
+.recipe-book button:disabled { opacity: 0.65; }
+.monster-icon { display: inline-flex; justify-content: center; align-items: center; width: 58px; height: 62px; flex: 0 0 58px; border: 1px solid currentColor; border-radius: 12px; background: radial-gradient(ellipse, #392b51, #100a1d); font: 1.8rem var(--serif); }
+.monster-icon svg { width: 90%; height: 90%; filter: drop-shadow(0 0 4px currentColor); }
+.skill-note { padding: 12px; border-left: 2px solid var(--gold); background: #ffffff08; }
+.skill-note p, .skill-note small { font-size: 0.78rem; color: var(--muted); }
+.material-pair { display: flex; gap: 16px; align-items: center; margin: 14px 0; }
+.finished { max-width: 420px; } .finished .monster-icon { margin: auto; } .finished p { font-size: 0.83rem; }
+.side > .monster-icon { position: absolute; left: 0; top: 0; width: 76px; height: 78px; }
+.ability-charge { display: flex; gap: 10px; align-items: center; color: var(--gold); font-size: 0.8rem; }
+.ability-charge i { display: inline-block; width: 9px; height: 9px; margin: 0 3px; border: 1px solid var(--gold); transform: rotate(45deg); }
+.ability-charge i.charged { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.ability-charge small { color: var(--muted); }
+.ability-banner { position: absolute; top: 19%; left: 50%; transform: translateX(-50%); z-index: 3; min-width: 300px; text-align: center; padding: 12px 36px; background: linear-gradient(90deg, transparent, #0c0819ed 20%, #0c0819ed 80%, transparent); border-top: 1px solid; border-bottom: 1px solid; pointer-events: none; animation: fade 0.2s both; }
+.ability-banner strong { display: block; font-family: var(--serif); font-size: 2.1rem; letter-spacing: 0.12em; }
+.ability-banner small, .ability-banner span { font-size: 0.78rem; letter-spacing: 0.15em; }
+@media (max-width: 1200px) { .synthesis-grid { grid-template-columns: 250px minmax(240px, 1fr) 280px; gap: 10px; padding: 12px; } .ability-charge small { display: none; } }
+@media (max-width: 850px) { .synthesis-grid { grid-template-columns: 220px 1fr; overflow-y: auto; } .recipe-notes { grid-column: 1 / -1; max-height: none; overflow: visible; } .material-shelf { max-height: 580px; } .synthesis-center { min-height: 520px; } .design .bar-top h1 { font-size: 1.1rem; } }

@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cast } from '../data/cast';
 import { interludes, steps } from '../data/chapter1';
 import { scenes } from '../data/script';
 import { useGame, snapshot } from '../state/store';
 import { battleFinished, dayOf, initialProgress, knownEnemies, manufactured, sceneFinished, sceneOf, stepOf, viewOf, type Progress } from './progress';
-import { parseSave, toSave } from './save';
+import { parseSave, toSave, writeSave } from './save';
 import { advance, begin, choice, current, narr, opt, say, when, type Line } from './story';
 
 /** 場面を最後まで読む。pick は選択肢の選び方。 */
@@ -31,11 +31,23 @@ describe('台本', () => {
     expect(read(lines, [], () => 0).flags).toEqual(['fx']);
   });
   it('すべての場面が、どの選択肢でも最後まで読める。話者は登録済み', () => {
-    for (const [id, lines] of Object.entries(scenes)) for (const pick of [() => 0, (n: number) => n - 1]) for (const flags of [[], ['lostFirst', 'seenSelfBurn']]) {
+    for (const [id, lines] of Object.entries(scenes)) for (const pick of [() => 0, (n: number) => n - 1]) for (const flags of [[], ['lostFirst'], ['lostFirst', 'seenSelfBurn'], ['promisedLisette'], ['deniedToLisette']]) {
       const r = read(lines, flags, pick);
       expect(r.seen.length, id).toBeGreaterThan(0);
       r.seen.forEach(l => { if (l.t === 'say') { expect(cast[l.who], `${id}: ${l.who}`).toBeDefined(); expect(l.text.length).toBeGreaterThan(0); } });
     }
+  });
+  it('初夜の返答が章末に反映され、旧セーブでは通常の説明要求になる', () => {
+    const dialogue = (lines: readonly Line[], flags: string[], pick: (n: number) => number = () => 0) => read(lines, flags, pick);
+    const spoken = (flags: string[]) => dialogue(scenes.victory, flags).seen.flatMap(l => l.t === 'say' ? [l.text] : []).join('\n');
+    const denied = dialogue(scenes.eveningLisette, [], () => 0).flags;
+    const deferred = dialogue(scenes.eveningLisette, [], n => n - 1).flags;
+    expect(denied).toContain('deniedToLisette');
+    expect(deferred).toContain('promisedLisette');
+    expect(spoken(denied)).toContain('何も知らない、とおっしゃいましたね');
+    expect(spoken(denied)).not.toContain('あの夜の「今は」');
+    expect(spoken(deferred)).toContain('あの夜の「今は」');
+    expect(spoken([])).toContain('私たちにも説明をお願いします');
   });
   it('進行表と差し込み場面が、すべて台本に存在する', () => {
     const ids = [...steps.flatMap(s => (s.kind === 'story' ? [s.scene] : [])), interludes.birth, interludes.raidLoss, ...Object.values(interludes.loss)];
@@ -91,26 +103,53 @@ describe('保存', () => {
   const game = () => useGame.getState();
   it('製造して戦った状態を保存形式にし、読み戻すと同じ進行になる', () => {
     while (viewOf(game().progress) === 'story') game().finishScene([]);
-    game().setDesign({ defense: 'shell' }); game().startManufacture(); game().completeManufacture();
+    game().setDesign({ first: 'iron', second: 'ember' }); game().startManufacture(); game().completeManufacture();
     expect(sceneOf(game().progress)).toBe('birth'); game().finishScene([]);
     game().startBattle(1, 'swordsman'); expect(game().battle?.result.outcome).toBe('win'); game().concludeBattle();
     expect(game().roster[0]).toMatchObject({ id: 1, wins: 1, losses: 0 });
     const data = snapshot(game()), back = parseSave(JSON.parse(JSON.stringify(toSave(data))));
     expect(back).toEqual(data);
   });
-  it('容量超過の設計は製造を始めない。二重の製造開始もしない', () => {
+  it('未成立の配合は製造を始めない。二重の製造開始もしない', () => {
     while (viewOf(game().progress) === 'story') game().finishScene([]);
-    game().setDesign({ process: 'heated', defense: 'shell' });
+    game().setDesign({ first: 'iron', second: 'iron' });
     game().startManufacture(); expect(game().building).toBeNull();
-    game().setDesign({ process: 'standard' }); game().startManufacture(); game().setDesign({ defense: 'light' }); game().startManufacture(); game().completeManufacture(); game().completeManufacture();
-    expect(game().roster).toHaveLength(1); expect(game().roster[0].design.defense).toBe('shell');
+    game().setDesign({ second: 'ember' }); game().startManufacture(); game().setDesign({ second: 'spirit' }); game().startManufacture(); game().completeManufacture(); game().completeManufacture();
+    expect(game().roster).toHaveLength(1); expect(game().roster[0].design.second).toBe('ember'); expect(game().discovered).toContain('furnace');
   });
   it('壊れたデータや未対応の版は拒否する', () => {
     const ok = toSave(snapshot(game()));
     expect(() => parseSave({ ...ok, version: 1 })).toThrow('対応していません');
-    expect(() => parseSave({ ...ok, design: { ...ok.design, body: 'dragon' } })).toThrow('設計');
+    expect(() => parseSave({ ...ok, design: { ...ok.design, first: 'dragon' } })).toThrow('設計');
     expect(() => parseSave({ ...ok, progress: { ...ok.progress, step: 999 } })).toThrow('進行位置');
     expect(() => parseSave({ ...ok, roster: [{ id: 5, design: ok.design, wins: 0, losses: 0 }] })).toThrow('個体番号');
     expect(() => parseSave(null)).toThrow();
+  });
+  it('旧v2は進行と個体番号・戦績を保ち、二材料へ移行する', () => {
+    const base = snapshot(game());
+    const d = { body: 'slime', attack: 'fire', defense: 'shell', process: 'standard' };
+    const migrated = parseSave({ ...base, version: 2, design: d, roster: [{ id: 1, design: d, wins: 2, losses: 1 }], nextId: 2 });
+    expect(migrated.progress).toEqual(base.progress);
+    expect(migrated.roster[0]).toMatchObject({ id: 1, wins: 2, losses: 1, design: { first: 'iron', second: 'ember' } });
+    expect(migrated.discovered).toContain('furnace');
+    expect(toSave(migrated).version).toBe(3);
+  });
+  it('未成立の編集中配合は保存可能だが、個体には認めない。発見は格納庫と別に残る', () => {
+    const base = { ...snapshot(game()), design: { first: 'iron' as const, second: 'iron' as const }, discovered: ['furnace' as const] };
+    expect(parseSave(toSave(base))).toEqual(base);
+    expect(() => parseSave({ ...toSave(base), nextId: 2, roster: [{ id: 1, design: base.design, wins: 0, losses: 0 }] })).toThrow('配合');
+  });
+  it('v3の保存前に旧v2原本を退避し、以後の保存でバックアップを書き換えない', () => {
+    const key = 'monster-factory/save', raw = JSON.stringify({ version: 2, original: '旧データの原本' });
+    const values = new Map([[key, raw]]);
+    vi.stubGlobal('localStorage', { getItem: (k: string) => values.get(k) ?? null, setItem: (k: string, value: string) => values.set(k, value) });
+    try {
+      expect(writeSave(snapshot(game()))).toBe(true);
+      expect(values.get(`${key}/v2-backup`)).toBe(raw);
+      expect(JSON.parse(values.get(key)!).version).toBe(3);
+      values.set(key, JSON.stringify({ version: 2, original: '別データ' }));
+      expect(writeSave(snapshot(game()))).toBe(true);
+      expect(values.get(`${key}/v2-backup`)).toBe(raw);
+    } finally { vi.unstubAllGlobals(); }
   });
 });

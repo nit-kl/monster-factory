@@ -1,4 +1,6 @@
-# Game design — current working concept
+# Game design — historical working concept
+
+> 2026-11-14更新：以下は旧設計案です。現行の2材料配合・6種の魔物・製造観察・固有技付き自動戦闘は [MATERIAL_SYNTHESIS.md](MATERIAL_SYNTHESIS.md) を参照。旧器官スロットや製造ミニゲームを再導入しないでください。
 
 ## Core loop
 1. **Briefing:** hero enemy composition/constraints and available materials.

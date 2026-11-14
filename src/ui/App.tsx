@@ -38,7 +38,7 @@ function Title() {
         </div>
         {save.error && <p className="note warn">保存データを読み込めませんでした（{save.error}）。</p>}
         <p className="note">体験版：序章〜第1章。進行はこのブラウザに自動保存されます。ブラウザのデータを消すと失われます。</p>
-        <p className="note">絵と3Dモデルは制作中の仮素材です。</p>
+        <p className="note">二つの材料から、ひとつの命。6種類の魔物と、それぞれの固有技を発見してください。</p>
       </div>
     </div>
   );

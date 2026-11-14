@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import type { EnemyId } from '../data/enemies';
 import type { BattleEvent } from '../domain/battle';
-import type { Design } from '../domain/design';
+import { recipeFor, type Design } from '../domain/design';
+import { impactSound } from './sound';
 import { ball, box, canvasTexture, cone, cyl, glow, mesh, metal, Particles, Stage, std, torus } from './kit';
 import { buildHero } from './heroes';
 import { buildMonster, type Monster } from './monster';
@@ -14,6 +15,12 @@ export class Arena {
   private stage: Stage; private monster: Monster; private hero: ReturnType<typeof buildHero>;
   private tweens: Tween[] = []; private shot: THREE.Mesh; private shotMat: THREE.MeshStandardMaterial;
   private sparks = new Particles(300, 0xffffff, 0.12); private shake = 0;
+  private effects: THREE.Mesh[] = [];
+  private echoes: THREE.Group[] = [];
+  private shock: THREE.Mesh;
+  private attackTime = 0; private attackSpecial = false;
+  paused = false; speed = 1;
+  private reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   constructor(host: HTMLElement, private design: Design, private enemy: EnemyId) {
     this.stage = new Stage(host, { bloom: 0.4, fov: 38, background: 0x0c0816 });
     const s = this.stage.scene;
@@ -36,17 +43,38 @@ export class Arena {
     const key = new THREE.DirectionalLight(0xfff0e0, 2.0); key.position.set(-3, 9, 7); key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
     Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -4 }); s.add(key);
     this.monster = buildMonster(design); this.monster.setAwake(1);
+    if (recipeFor(design)!.id === 'prism') {
+      for (let i = 0; i < 4; i++) {
+        const echo = this.monster.root.clone(true);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xb7c4ff, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
+        echo.traverse(o => { if (o instanceof THREE.Mesh) { o.material = mat; o.castShadow = false; } });
+        echo.visible = false; s.add(echo); this.echoes.push(echo);
+      }
+    }
     this.hero = buildHero(enemy); this.hero.root.scale.setScalar(1.3);
     this.shotMat = glow(0xffa64a, 3); this.shot = mesh(ball(0.2, 14, 10), this.shotMat); this.shot.visible = false; this.shot.castShadow = false;
+    this.shock = mesh(torus(1, 0.04), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }), [EX, 0.1, 0], [Math.PI / 2, 0, 0]); s.add(this.shock);
+    for (let i = 0; i < 16; i++) {
+      const geometry = recipeFor(design)!.id === 'bell' ? torus(0.7, 0.025) : new THREE.OctahedronGeometry(0.22);
+      const fx = mesh(geometry, glow(0xffffff, 2)); fx.visible = false; fx.castShadow = false; this.effects.push(fx); s.add(fx);
+    }
     s.add(this.monster.root, this.hero.root, this.shot, this.sparks.points);
     this.reset();
     this.stage.camera.position.set(0, 2.7, 9.2);
-    this.stage.onFrame = (dt, t) => {
+    this.stage.onFrame = (_dt, t, real) => {
+      if (this.paused) return;
+      // 戦闘ログと同じ実時間で進め、低FPSでも技の途中で次の攻撃に移らない。
+      const dt = real * this.speed;
+      this.attackTime = Math.max(0, this.attackTime - dt);
+      this.monster.strike(this.attackTime > 0 ? 1 - this.attackTime / (this.attackSpecial ? 1.4 : 0.65) : 0, this.attackSpecial);
       this.monster.tick(t); this.hero.tick(t); this.sparks.update(dt);
-      this.tweens = this.tweens.filter(w => { w.t += dt; const p = Math.min(1, w.t / w.dur); w.step(p); if (p >= 1) w.done?.(); return p < 1; });
+      const active = this.tweens; this.tweens = [];
+      active.forEach(w => { w.t += dt; const p = Math.min(1, w.t / w.dur); w.step(p); if (p >= 1) w.done?.(); else this.tweens.push(w); });
       this.shake = Math.max(0, this.shake - dt * 3);
       const cam = this.stage.camera;
-      cam.position.set(Math.sin(t * 0.25) * 0.6 + (Math.random() - 0.5) * this.shake * 0.3, 2.7 + (Math.random() - 0.5) * this.shake * 0.3, 9.2);
+      const zoom = this.attackSpecial && this.attackTime > 0 && !this.reduced ? Math.sin(Math.min(1, this.attackTime / 1.4) * Math.PI) * 0.9 : 0;
+      const shake = this.reduced ? 0 : this.shake;
+      cam.position.set(Math.sin(t * 0.25) * 0.6 + (Math.random() - 0.5) * shake * 0.3, 2.7 + (Math.random() - 0.5) * shake * 0.3, 9.2 - zoom);
       cam.lookAt(0, 1.15, 0);
     };
     this.stage.start();
@@ -84,16 +112,65 @@ export class Arena {
       return;
     }
     if (e.actor === 'monster') {
-      if (this.design.attack === 'claws') this.lunge('monster', 0xfff2d8);
-      else this.fire('monster', this.design.attack === 'fire' ? 0xff8a2c : 0x8dff5c, [1.2, 1.2, 1.2]);
-      if (e.selfBurn) this.add(0.12, () => {}, () => { (this.sparks.points.material as THREE.PointsMaterial).color.setHex(0xff5a1c); this.sparks.burst(new THREE.Vector3(MX, 1.1, 0.2), 34, 2.6, 1.2); this.shake = 0.35; });
+      this.signature(e.special);
       return;
     }
     if (this.enemy === 'swordsman') this.lunge('enemy', 0xdfe8ff);
     else if (this.enemy === 'archer') this.fire('enemy', 0xf0e0b0, [2.6, 0.18, 0.18]);
     else this.fire('enemy', 0x7fe6ff, [1.4, 0.9, 0.9]);
   }
+  private signature(special: boolean) {
+    const r = recipeFor(this.design)!, color = new THREE.Color(r.color).getHex();
+    this.attackSpecial = special; this.attackTime = special ? 1.4 : 0.65;
+    impactSound(special, r.id === 'bell' ? 740 : r.id === 'furnace' ? 110 : 280);
+    if (!special) {
+      if (r.id === 'bloom' || r.id === 'prism' || r.id === 'thorn') this.lunge('monster', color);
+      else this.fire('monster', color, r.id === 'furnace' ? [1.8, 1.8, 1.8] : [0.8, 1.6, 0.8]);
+      return;
+    }
+    let struck = false;
+    this.effects.forEach(o => { const mat = o.material as THREE.MeshStandardMaterial; mat.color.setHex(color); mat.emissive.setHex(color); o.visible = true; });
+    this.add(1.4, p => {
+      const release = Math.max(0, Math.min(1, (p - 0.28) / 0.42));
+      this.echoes.forEach((echo, i) => {
+        const a = i * Math.PI / 2 + Math.PI / 4;
+        const distance = 3.5 * (1 - release);
+        echo.position.set(EX + Math.cos(a) * distance, Math.sin(release * Math.PI) * 0.55, Math.sin(a) * distance);
+        echo.rotation.y = -a - Math.PI / 2;
+        echo.visible = p > 0.16 && p < 0.72;
+      });
+      this.effects.forEach((o, i) => {
+        const a = i / 16 * Math.PI * 2;
+        o.rotation.set(p * 5, a + p * 8, a);
+        if (r.id === 'wraith') {
+          o.scale.set(0.5, 2.2, 0.5);
+          o.position.set(MX + (EX - MX) * release + Math.cos(a) * (1 - release) * 1.7, 1.2 + Math.sin(a) * (1 - release) * 1.6, Math.sin(a * 2) * (1 - release));
+        } else if (r.id === 'furnace') {
+          o.scale.set(2.8, 1.5 + Math.sin(a) * 0.3, 1.5);
+          o.position.set(MX + 0.6 + i / 15 * (EX - MX) * release, 1.3 + Math.sin(a + p * 20) * 0.18, Math.cos(a + p * 20) * 0.18);
+        } else if (r.id === 'bloom') {
+          const rise = Math.sin(Math.max(0, Math.min(1, release * 1.5 - i / 32)) * Math.PI);
+          o.scale.set(0.8, 1 + rise * 7, 0.8); o.position.set(EX + Math.cos(a) * 1.2, rise * 0.7, Math.sin(a) * 1.2);
+          this.monster.root.position.x = MX + Math.sin(release * Math.PI) * 4.4;
+        } else if (r.id === 'thorn') {
+          o.scale.set(0.5, 1 + release * 7, 0.5); o.position.set(EX + Math.cos(a) * (1.8 - release), release * 0.7, Math.sin(a) * (1.8 - release)); o.rotation.z = -Math.cos(a) * 0.7;
+        } else if (r.id === 'prism') {
+          o.scale.set(0.45, 0.45, 3); o.position.set(EX + Math.cos(a) * (1 - release) * 3, 0.6 + i % 3 * 0.35, Math.sin(a) * (1 - release) * 3);
+          this.monster.root.position.set(MX + Math.sin(release * Math.PI) * 4, Math.sin(release * Math.PI) * 0.7, 0);
+        } else {
+          const wave = Math.max(0, Math.min(1, release * 1.4 - i * 0.12));
+          o.rotation.set(0, Math.PI / 2, 0); o.scale.setScalar(0.5 + wave * 1.8);
+          o.position.set(MX + (EX - MX) * wave, 1.3, 0);
+        }
+        o.visible = p < 0.82 && (r.id !== 'bell' || i < 4);
+      });
+      if (p >= 0.64 && !struck) { struck = true; this.hit('enemy', color, 110); this.shake = 1; impactSound(true, 90); }
+      const blast = Math.max(0, (p - 0.64) / 0.36);
+      this.shock.scale.setScalar(0.3 + blast * 3.5); const mat = this.shock.material as THREE.MeshBasicMaterial; mat.color.setHex(color); mat.opacity = blast > 0 ? (1 - blast) * 0.8 : 0;
+    }, () => { this.effects.forEach(o => o.visible = false); this.echoes.forEach(o => o.visible = false); this.monster.root.position.set(MX, 0, 0); (this.shock.material as THREE.MeshBasicMaterial).opacity = 0; });
+  }
   finish(outcome: 'win' | 'loss' | 'draw') {
+    this.reset(); this.effects.forEach(o => o.visible = false); this.echoes.forEach(o => o.visible = false); this.attackTime = 0; this.monster.strike(0, false); (this.shock.material as THREE.MeshBasicMaterial).opacity = 0;
     const loser = outcome === 'win' ? this.hero.root : outcome === 'loss' ? this.monster.root : null;
     const winner = outcome === 'win' ? this.monster.root : outcome === 'loss' ? this.hero.root : null;
     if (loser) this.add(0.7, p => { loser.rotation.z = (loser === this.hero.root ? -1 : 1) * p * 1.45; loser.position.y = -p * 0.1; });

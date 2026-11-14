@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cast, staffIds, type StaffId } from '../data/cast';
 import { enemies, type EnemyId } from '../data/enemies';
-import { advice } from '../data/script';
+import { advice, consultationReflection } from '../data/script';
 import { hangarSize } from '../domain/manufacture';
 import { dayOf, knownEnemies, stepOf } from '../domain/progress';
 import { useGame } from '../state/store';
@@ -24,7 +24,8 @@ export function EnemyInfo({ id }: { id: EnemyId }) {
 
 function Consult({ enemy, onClose }: { enemy: EnemyId; onClose: () => void }) {
   const [who, setWho] = useState<StaffId>('lisette'), [i, setI] = useState(0);
-  const lines = advice[enemy][who], c = cast[who];
+  const day = useGame(s => dayOf(s.progress));
+  const lines = [...advice[enemy][who], consultationReflection(who, day)], c = cast[who];
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onClose]);
   return (
     <div className="modal" role="dialog" aria-label="仲間に相談">
@@ -76,12 +77,12 @@ export function Hub() {
       </header>
       <aside className="hangar panel">
         <h2>格納庫 <small>{roster.length} / {hangarSize}</small></h2>
-        {roster.length === 0 && <p className="empty">まだ個体がいません。設計台で最初の個体を設計しましょう。</p>}
+        {roster.length === 0 && <p className="empty">まだ個体がいません。配合台で材料を選んで、最初の命をつくりましょう。</p>}
         {[...roster].reverse().map(u => <UnitCard key={u.id} unit={u} selected={u.id === selected} onSelect={() => setSelected(u.id)} />)}
         {moved > 0 && <p className="note">療養棟で休んでいる個体：{moved}体</p>}
       </aside>
       <footer className="hud-bottom">
-        <button className="big" onClick={() => go('design')} data-testid="go-design"><b>設計台へ</b><small>2F 研究フロア ／ 設計して製造する</small></button>
+        <button className="big" onClick={() => go('design')} data-testid="go-design"><b>配合台へ</b><small>2F 研究フロア ／ 二つの材料から魔物をつくる</small></button>
         <div className="sortie">
           {known.length > 1 && (
             <div className="segmented" role="group" aria-label="相手">

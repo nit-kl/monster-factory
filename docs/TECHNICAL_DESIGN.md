@@ -1,5 +1,7 @@
 # Technical design — browser-first proposal
 
+> 現行実装はReact/TypeScript/Three.js。2026-11-14の配合改修・保存v3・検証は [MATERIAL_SYNTHESIS.md](MATERIAL_SYNTHESIS.md) を優先。以下のPhaser等は初期提案を含む。
+
 ## Target and deployment
 - PC web browser first, responsive UI where feasible but desktop priority; Cloudflare Pages for static frontend deployment.
 - GitHub repository suggested name `monster-factory`; Cloudflare Pages production branch `main`, build command `npm run build`, output `dist` (verify actual build). Use Preview deployments on PRs if available.
