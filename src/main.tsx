@@ -1,5 +1,7 @@
-import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './app/App';
+import { enableAutosave } from './state/store';
+import { App } from './ui/App';
 import './style.css';
-createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);
+
+enableAutosave();
+createRoot(document.getElementById('root')!).render(<App />);

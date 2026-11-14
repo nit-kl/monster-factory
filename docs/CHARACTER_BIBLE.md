@@ -1,36 +1,115 @@
-# Character bible — working roster
+# キャラクター資料 — 正式な登場人物一覧
 
-## Guiding principles
-- At least half of major cast **fully nonhuman**, visibly monstrous (not just humans with horns). Different silhouettes, physical work motions, speech patterns.
-- Every worker has expertise, a flaw, personal stakes, friendships/rivalries and a role in mechanics.
-- Workers exist in the factory world; avoid static portrait-only presentation once animation becomes feasible.
+> 2026-11-14 更新。物語の中心は案A「魔王製造計画」（DECISIONS.md、`docs/proposals/STORY_AND_STRUCTURE_PROPOSAL.md`）。
+> **確定**：中心アイデア、主人公が本社から派遣されること、両軍の主要人物の方向性、王の設計図、最後に作られる王（プルル）。
+> **仮**：工場外の人物の名前、細かい経歴、口調の例。台本や美術が承認されたら確定する。
 
-## Main roster (latest discussed names and roles; provisional until approved artwork/script)
-| Name | Species / silhouette | Role | Personality / dramatic question | System contribution |
-|---|---|---|---|---|
-| リゼット・クロウ (Lisette Crow) | humanoid demon, short horns | deputy manager | strict cost-conscious organizer, guilt over previous losses | budgets, priorities, quotas |
-| バルガス・グレインホーン (Vargas Grainhorn) | **true bull-headed minotaur**, massive horns/body | equipment chief | gruff, gentle craftsperson; former labyrinth guardian; lost comrades | heavy machinery, fabrication, factory expansions |
-| オルフェン・ノクス (Orphen Nox) | **lich**, floating skull/skeletal mage | chief researcher | eccentric, 600-year-old scholar, conflicted about creation and war | organs, mind cores, magical research |
-| ポヨン・ゼリーゼ (Poyon Zellyse) | **giant translucent slime**, internally suspended reagents | culture and quality control | soothing, polite, memory mystery, possibly manufactured | media analysis, quality, culture processes |
-| アラクネア・シルクス (Arachnea Silks) | **giant spider monster**, eight legs, many eyes | precision technician | sharp-tongued perfectionist, socially awkward | routing, automation, multi-device repair |
-| ミミ・ポルカ (Mimi Polka) | fox beastfolk, humanoid | caretaker | joyful, names every creature, refuses to see them as disposable | training, trust, recovery |
-| グラディウス (Gradius) | **full quadrupedal ancient dragon** | retired demon general / trainer | formidable, war-weary, hesitant to fight again | advanced tactics, veteran training |
-| ノア・レイン (Noah Rain) | human ex-knight | tactical analyst | left hero faction; must confront assumptions about monsters | enemy analysis, predictions |
-| プルル (Pluru) | **small blue slime**, golden core | prototype No.000 / mascot | imitative, curious, uncanny memories, growing sense of self | tutorial companion, special progression |
-| ヴェラ・アークライト (Vera Arclight) | humanoid demon, military inspector | headquarters inspector | cold pragmatist with complicated secret agenda | quotas, authorizations, moral choices |
+## 基本方針
+- 主要キャラクターの半数以上は**完全な人外**にする（角や耳を付けただけの人間ではない）。シルエット、作業の動き、話し方をはっきり変える。
+- 工場で働く全員に、専門分野・欠点・個人的に抱えているもの・友情や対立・ゲーム上の役割を持たせる。
+- 天然の種族と製造された命が共存する。「全員が作り物だった」という展開にはしない。
+- どちらの陣営も一枚岩ではなく、どちらにも悪役は置かない。強硬派にも、本人なりの正しさと恐れがある。
+- 長い説明台詞に頼らない。口調の違いと、仕事の結果で人物を見せる。
 
-**Composition:** humanlike/near-human: Lisette, Mimi, Noah, Vera (4). Fully monstrous: Vargas, Orphen, Poyon, Arachnea, Gradius, Pluru (6).
+---
 
-## Relationships worth protecting
-- Vargas ↔ Orphen: craft versus experimentation; respect underneath argument.
-- Poyon ↔ Pluru: large slime caring for smaller slime; shared hidden memory.
-- Mimi ↔ Orphen: affection for monsters versus research ambitions.
-- Vargas ↔ Mimi: warm father/daughter-like mentorship.
-- Gradius ↔ Noah: veteran of demon army versus former hero knight.
-- Lisette manages all the chaos and is capable of chastising even a dragon.
+## 主人公
+| 項目 | 内容 |
+|---|---|
+| 立場 | 魔王軍本社の宰相府から派遣された「特命製造監督官」（肩書きの細部は仮）。表向きは第七工場の新工場長 |
+| 秘密 | 魔王の死を知る数少ない一人。「新しい魔王を製造せよ」という封印された発注書を持っている |
+| 選ばれた理由 | 優秀だからではなく、「失敗しても切り捨てやすいから」。序盤の笑いの軸 |
+| 描き方 | 喋りすぎない。選択肢で態度を示す程度。種族・性別・名前は未定（プレイヤーが決める案もある） |
+| 物語での変化 | 秘密を隠す監督官から、工場の一員になる。第2章で秘密が知られ、それまでの働きぶりの結果として信頼が描かれる（数値化しない） |
 
-## Demo / first 5 named characters
-Lisette (guidance), Vargas (machinery), Orphen (design), Poyon (cultivation), Pluru (first creature/mystery). Others can be hinted at and introduced later. Avoid replacing this nonhuman emphasis with the **older** largely humanoid roster (including former scientist Serena / dwarf Gald), unless explicitly revisited.
+---
 
-## Visual direction
-Distinct nonhuman silhouettes; friendly/whimsical workplace presentation that can pivot to grim fantasy. Character art is not final. Use original placeholders until art direction is agreed. Japanese dialogue should show distinct voices and not rely on exhaustive exposition.
+## 第七工場のメンバー（10人）
+
+| 名前 | 種族・姿 | 出自 | 役割 | 人物像 | 案Aでの背景 | ゲーム上の役割 | 口調 |
+|---|---|---|---|---|---|---|---|
+| リゼット・クロウ | 短い角の魔族 | 天然 | 副工場長 | 厳格で、費用に厳しい。工場の混乱をまとめ、竜にも説教できる | 先代魔王に拾われた元侍従。王の死を疑ったため工場へ左遷された。秘密を知ったときの反応が最も大きい | 予算・優先順位・ノルマ | 丁寧語（〜です） |
+| バルガス・グレインホーン | **牛頭のミノタウロス**。巨体と大きな角 | 天然 | 設備主任 | 無骨で優しい職人。戦友を失っている | 元迷宮守護者で、先代魔王に直接仕えていた。「王を作る」ことに職人として誇りを感じる一方、主君を部品のように扱うことに強く反発する | 重機・製作・工場の拡張 | 荒っぽい（〜だ、〜ねえ） |
+| オルフェン・ノクス | **リッチ**。浮遊する骸骨の魔導士 | 自ら不死になった | 研究主任 | 600年生きる変わり者の学者。創造と戦争の間で揺れている | 魔物製造技術の生みの親の一人。「王を設計する」課題に、知的な興奮と恐れの両方を抱く。プルルの言葉を聞いて最初に何かに気づく | 器官・心核・魔法の研究 | 老学者（〜じゃ、〜たまえ） |
+| ポヨン・ゼリーゼ | **巨大な半透明スライム**。体内に試薬が浮かぶ | 製造（と示唆される） | 培養・品質管理 | 穏やかで礼儀正しい。記憶に謎がある | 先代魔王からプルルを守るよう頼まれていたが、本人はそのことを覚えていない。記憶は物語の進行に合わせて少しずつ戻る | 培地の解析・品質・培養工程 | 柔らかい丁寧語（〜ですよ、〜ましょうね） |
+| アラクネア・シルクス | **蜘蛛の技師**。人の上半身、多眼、巨大な蜘蛛の胴と8本の脚 | 天然 | 精密整備技師 | 口が悪い完璧主義者。人付き合いが苦手 | 王の器官を接合できる精度を持つのは彼女だけ。技術的には計画の要で、自分の腕が何に使われるのかに向き合う | 搬送経路・自動化・複数設備の修理 | 少し尖った女性語（〜わ、〜して） |
+| ミミ・ポルカ | 狐の獣人 | 天然 | 飼育・育成係 | 明るく、生まれた個体すべてに名前をつける。使い捨てを許さない | 「プルルを王の器にはさせない」と最も強く主張する | 訓練・信頼・回復 | 元気（〜だよ！） |
+| グラディウス | **四足の古竜** | 天然 | 元将軍・訓練担当 | 威圧感があり、戦いに疲れている。再び戦うことをためらう | 先代魔王の盟友。王と勇者の停戦の約束を知りながら、黙ってきた。獣王ロウガとは旧知の仲 | 高度な戦術・帰還兵の訓練 | 古風（〜だ、〜ぬ、〜せよ） |
+| ノア・レイン | 人間の元騎士 | 天然 | 戦術分析官 | 勇者軍を離れた。魔物への思い込みと向き合う | 騎士団長グレイヴの元部下。王と勇者セイルの約束の場に居合わせた可能性がある（未確定）。第3章で加わる | 敵の分析・予測 | 落ち着いた丁寧語 |
+| プルル | **小さな青いスライム**。黄金の核 | 製造（No.000） | 試作体・マスコット | 真似が好きで好奇心旺盛。覚えのない記憶を持ち、自我が育っていく | 黄金の核は**先代魔王の王核のかけら**。本社の計画では「王の器」。最後に自分で自分を設計し、王になる（後述） | 案内役・特別な成長 | 最初は「ぷる」。少しずつ言葉を覚える |
+| ヴェラ・アークライト | 銀白の髪と黒い角の魔族 | 天然 | 本社監察官 | 冷徹な現実主義者。複雑な裏の目的を持つ | 宰相の目として主人公を見張る。裏では、王と勇者の約束の記録を独自に追っている。目的のためなら工場を切り捨てることも辞さない | 査定・許可・判断の分かれ目 | 硬い丁寧語・命令口調 |
+
+**内訳**：人間に近い姿＝リゼット、ミミ、ノア、ヴェラ（4人）。完全な人外＝バルガス、オルフェン、ポヨン、アラクネア、グラディウス、プルル（6人）。
+
+---
+
+## 魔王軍の主要人物（工場の外）
+
+| 名前（仮） | 姿 | 立場 | 人物像 | 物語での役割 | 主な場面 |
+|---|---|---|---|---|---|
+| **先代魔王 ヴォルグラム** | 全身を見せない巨大な影。角と王冠の輪郭だけが分かる | 故人（3年前に死亡） | 威厳があるのに、どこか寂しげ | 真相の中心。勇者と停戦の約束を交わして自ら死を選び、王核を第七工場に託した。願いは「血筋でも力でもなく、共に働く者たちが王のあり方を選べること」 | 回想、記録、プルルの言葉の中だけ |
+| **宰相ゼルヴァ** | 目がたくさんある巨大な老大蛇（完全な人外） | 本社の実権者。製造の発注主で、主人公の上司 | 「国が保てるなら、死体でも玉座に座らせる」冷徹な現実主義者。国が崩れることを本気で恐れている | 魔王の死を隠し、王の製造を命じる。最後まで理屈の通った相手でいる | 序章から全編 |
+| **影武者ネフィラ** | 決まった姿を持たない変身族 | 3年間、魔王を演じている | 疲れ切っていて、自分の顔を忘れかけている。皮肉屋だが、本当は優しい | 笑いと悲しさの両方を担う。中盤で工場に逃げ込み、玉座の裏の真実を語る | 序章で「魔王」として登場、中盤で正体を明かす |
+| **炎将ガルドラン** | 溶岩の肌を持つ巨大な鬼 | 四天王の生き残り。武闘派 | 部下思いの猛将。戦で失ったものが多すぎて、勝つこと以外を信じられない | 「戦のための王」を要求し、自分の設計案を押しつける。第4章で本社を乗っ取り、最終戦で工場を攻める魔王軍側の敵 | 第2章〜終章 |
+| **獣王ロウガ** | 白銀の巨大な狼 | 魔物の諸部族の長 | 誇り高く、嘘を嫌う | 忠誠の相手は本社ではなく先代魔王本人。王の死を疑い、工場を探りに来る。味方にも敵にもなる。王命のあと、王を認めるかを自分の意志で選ぶ | 第2章〜終章 |
+| **ヴェラ・アークライト** | （工場メンバー一覧を参照） | 本社監察官 | — | 本社と工場の間に立つ | 第2章〜 |
+
+---
+
+## 勇者軍の主要人物
+
+| 名前（仮） | 姿 | 立場 | 人物像 | 物語での役割 | 主な場面 |
+|---|---|---|---|---|---|
+| **勇者セイル・アストラ** | 疲れた目をした人間の青年 | 魔王を討った英雄（とされている） | 英雄として祭り上げられることに耐えられず、表舞台から消えた | 先代魔王と約束を交わした本人。第3章から旅人として工場の周りに現れる。最終戦のあと、王女とともに停戦を結ぶ | 第3章〜終章 |
+| **騎士団長グレイヴ・ハルト** | 白髪交じりで重装の騎士 | 工場攻略の総指揮官 | 誠実で、部下を死なせることを何より嫌う | ノアの元上官で恩師。「新しい魔王が作られている」とつかんで工場を攻める。王命で魔物が止まるのを見て、最初に剣を下ろす | 第1章（名前のみ）〜終章 |
+| **魔導技師ルカ・フェン** | 眼鏡の少女。機械仕掛けの杖 | 勇者軍の兵器設計者 | 天才肌で負けず嫌い。設計そのものを楽しんでいる | **プレイヤーの鏡写し。** こちらの戦闘記録を分析し、対策した部隊を送ってくる（第3章の「敵の学習」の仕組み）。オルフェンとは研究者どうし通じ合う | 第2章（記録のみ）〜終章 |
+| **聖女イリス** | 白い法衣の女性 | 教会の象徴 | 故郷を製造された魔物に焼かれた。本気で人々を救おうとしている | 「魔物の工場はすべて浄化すべき」と信じる、善意から来る強硬派。最終戦で十字軍を率いる勇者軍側の敵 | 第3章〜終章 |
+| **第一王女エレオノーラ** | 人間の王族 | 王国の政治家 | 冷静で計算高いが、戦争で疲れた国の民を見ている | 停戦の可能性を探る交渉役。最終戦のあと、勇者とともに停戦を結ぶ | 第3章〜終章 |
+
+### 陣営内の対立
+- 魔王軍：**宰相・炎将**（王を作って軍を立て直す）と、**獣王・影武者**（王の死を明かすべき／王は本物でなければならない）。
+- 勇者軍：**聖女・騎士団長**（工場を潰す）と、**勇者・王女**（停戦を探る）。騎士団長は物語の中で側を移る。
+
+---
+
+## プルルと「最後の王」（確定）
+- 最後の設計台に座るのはプルル。プレイヤーの最後の操作は、設計台の席をプルルに譲ること。
+- プルルは、**王の設計図**（プレイヤーの働きと選択で集めた資質）を使って自分自身を設計する。攻撃のための器官はすべて外す。
+- 王核の力は「すべての魔物に届く、一度きりの王命」。プルルはそれを一度だけ使い、「たたかうのを、やめて」と命じる。使えば力はなくなる。
+- 玉座には座らず、第七工場に残って働き続ける（試遊版の台詞「玉座は、空のままでいい」の回収）。
+- 代償：結ばれるのは停戦で、和解ではない。一部の部族は去る。プルルは先代の記憶の一部を受け継ぎ、子どもらしさを少し失う。
+- 物語での変化：「ぷる」としか言えない → 真似をする → 先代の言葉を話す → 自分の言葉で選ぶ。
+
+---
+
+## 大切にしたい関係
+- バルガス ↔ オルフェン：職人の技と実験の対立。言い争いの下には敬意がある。
+- ポヨン ↔ プルル：大きなスライムが小さなスライムを守る。先代魔王の頼みでつながっている。
+- ミミ ↔ オルフェン：魔物への愛情と研究への野心の対立。
+- バルガス ↔ ミミ：父と娘のような温かい師弟関係。
+- グラディウス ↔ ノア：魔王軍の古参と元勇者軍の騎士。
+- リゼットは混乱を全部まとめ、竜にも説教できる。
+- **主人公 ↔ リゼット**：秘密を持つ上司と、王の死を疑う部下。第2章の山場。
+- **グラディウス ↔ 獣王ロウガ**：先代魔王の盟友どうし。片方は黙り、片方は疑う。
+- **オルフェン ↔ ルカ**：敵どうしの設計者。互いの設計を読み合う。
+- **ノア ↔ グレイヴ**：元部下と恩師。
+- **ネフィラ ↔ プルル**：王を演じる者と、王になる者。
+- **ガルドラン ↔ バルガス**：同じ戦場を生きた武人。「誰のために戦うか」で分かれる。
+
+---
+
+## 誰がいつ何を知るか（作劇の管理用）
+| 秘密 | 最初から知っている | 知る時期 |
+|---|---|---|
+| 魔王の死 | 主人公・宰相・ネフィラ・ガルドラン・勇者セイル | 工場の仲間：第2章／獣王：第3〜4章 |
+| 新しい魔王の製造命令 | 主人公・宰相 | 工場の仲間：第2章／勇者軍：第3章 |
+| プルルの核が王核であること | （誰もいない。ポヨンが無意識に知っている） | オルフェンが第1章の終わりに疑い、第2章で判明 |
+| 王と勇者の停戦の約束 | 勇者セイル・グラディウス | ヴェラが追っている／全員：第4章 |
+
+---
+
+## 初期の5人（試遊版）
+リゼット（案内）、バルガス（設備）、オルフェン（設計）、ポヨン（培養）、プルル（最初の個体・謎）。それ以外の人物はほのめかす程度にして、あとから登場させる。かつての人間中心の一覧（元科学者セレナ、ドワーフのガルドなど）には、明示的に見直さない限り戻さない。
+
+## 見た目の方向
+人外のシルエットをはっきり描き分ける。職場の明るく楽しい雰囲気から始めて、だんだん重いファンタジーへ移れるようにする。工場外の人物の美術は未制作で、方向が決まるまでは独自の仮素材を使う。

@@ -54,3 +54,25 @@ Factory3D uses separate production and research groups, with the research floor 
 ## Camera interaction update
 
 Drag rotation and wheel zoom are enabled alongside click navigation. OrbitControls start cancels automatic camera travel. Automatic travel only runs after equipment selection, floor switching, or reset; it stops at its destination. Manual camera damping is disabled to avoid delayed drift. Horizontal rotation is unrestricted, vertical rotation and distance remain bounded.
+
+## Six-floor prototype and pan controls (2026-11-08)
+
+The proposed full-building layout is B2 power, B1 storage, 1F production, 2F research, 3F recovery/training, and 4F command. This is a provisional spatial design, not new story canon. The active floor alone is rendered. Typed floor metadata maps fourteen equipment selections to floors and existing portrait consultation characters. FactoryDetails builds original procedural machinery and architectural detail, batching its static meshes by material within each equipment parent so raycasting remains intact. New logistics, energy and recovery mechanics are explicitly exhibition-only.
+
+OrbitControls now supports screen-space pan with right drag (or its standard modifier-assisted left drag), orbit with left drag and wheel zoom. Pointer-up picking ignores non-left buttons. Manual interaction cancels automatic camera travel. Desktop viewport height is bounded to keep the room visible. Both upward and downward stair links are available, with endpoints disabled.
+
+## Floor navigation and clarity revision (2026-11-08)
+
+Map-anchored stair navigation buttons are removed at the user's request. Floor selection is handled by the React floor lists; 3D equipment picking remains. Distance fog is removed to avoid hazing distant machinery. Renderer pixel ratio is clamped to 1.5–2 (supersampling standard-DPI displays and improving the previous 1.5 cap on high-DPI displays), recalculated on resize. No depth-of-field blur is used.
+
+## 2026-11-14 update: full rewrite (story + 3D manufacturing)
+
+The app was rebuilt from scratch on explicit user instruction. Sections above describe the earlier prototype and are historical.
+
+- `src/data`: parts, enemies, cast, chapter flow, line comments and the script (`script/`), all typed data.
+- `src/domain`: pure TypeScript, no DOM/Three imports — `design` (stats, notes, unlocks), `battle` (seeded simulation, diagnosis), `manufacture` (units, hangar, production timeline), `story` (script format and cursor state machine), `progress` (chapter progression reducer), `save` (v2 format, validation; localStorage read/write is isolated at the bottom).
+- `src/state/store.ts`: Zustand store orchestrating the above, with autosave on progress changes.
+- `src/three`: presentation only — `kit` (Stage: renderer, bloom, environment, resize, disposal; particles), `monster` (procedural models from a design), `heroes`, `line` (manufacturing line driven by the domain timeline), `preview` (design turntable), `arena` (battle replay).
+- `src/ui`: React screens — title, story player, hub, design, manufacture, battle/report, ending.
+- One WebGL renderer exists at a time; each screen creates and disposes its own stage.
+- Phaser and IndexedDB are no longer used. Tests: Vitest for domain/store, a Playwright script (`npm run e2e`) for a full playthrough against `npm run preview`.

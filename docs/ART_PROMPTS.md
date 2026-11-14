@@ -59,3 +59,6 @@ Single original fantasy game enemy sprite, adult human archer, full body three-q
 ### public/assets/battle/mage-v1.png
 
 Single original fantasy game enemy sprite: adult human frost mage, full body three-quarter side view facing LEFT. Clearly living human face, NOT a lich, no skull. Pale blue layered robes with silver trim, blue hood, boots, holding wooden staff topped with small icy crystal, free hand conjuring tiny frost spark. Crisp detailed pixel art matching purple-and-brass fantasy monster factory game. Clear silhouette at 150px display size. Entire character centered with margin, transparent background, no ground no shadow no scenery no text no UI. One character only, generic opponent not a named hero.
+
+## 2026-11-08 最新キャラクター資料
+全10人の透過立ち絵v2の入力対応・最終プロンプトは [CHARACTER_ART_V2.md](CHARACTER_ART_V2.md) に記録。内蔵image_genで生成し、public/assets/factoryへ保存。

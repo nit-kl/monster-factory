@@ -32,6 +32,8 @@ This is a scripted onboarding demo so everyone experiences the 'aha' moment; lat
 - Exclude multiplayer, backend, account, extensive tech trees, genetic simulation, and large-scale Factorio-style free construction.
 
 ## Story arc
+> **2026-11-14：置き換え。** 中心アイデアは案A「魔王製造計画」に変更された（DECISIONS.md と docs/proposals/STORY_AND_STRUCTURE_PROPOSAL.md を参照）。以下は旧案として残している。
+
 Setting: a nearly bankrupt remote demon army factory (the Seventh Monster Manufacturing Plant) in a centuries-long war between demon and hero armies. A new manager arrives and struggles to meet quotas with oddball colleagues.
 - Ch.1: save the factory, build trust in a colorful workplace.
 - Ch.2: an apparently defective manufactured creature holds memories it shouldn't; clashes about whether created monsters are tools or persons.
