@@ -57,6 +57,35 @@ const scenes: Record<Exclude<BgId, 'floor' | 'tank' | 'black'>, ReactNode> = {
       <Candle x={300} y={420} /><Candle x={1300} y={420} /><Candle x={520} y={470} /><Candle x={1080} y={470} />
     </>
   ),
+  road: (
+    <>
+      <rect width="1600" height="900" fill="url(#g-dusk)" />
+      <Stars n={55} h={340} />
+      <circle cx="1280" cy="210" r="68" fill="#f5e6c4" opacity="0.82" />
+      <Glow x={1280} y={210} r={190} c="#ffcf8a" o={0.24} />
+      <path d="M0 580 L210 350 L430 510 L690 260 L960 490 L1220 310 L1600 540 V900 H0Z" fill="#231734" />
+      <path d="M0 660 L320 490 L610 610 L940 470 L1320 600 L1600 520 V900 H0Z" fill="#181026" />
+      {/* 陥落した旧工場・監視塔の廃墟シルエット */}
+      <g fill="#100a1a" opacity="0.9">
+        <rect x="330" y="395" width="38" height="120" />
+        <path d="M324 395 L349 360 L374 395Z" />
+        <rect x="920" y="360" width="48" height="130" />
+        <path d="M920 360 L945 385 L968 368 V390 H920Z" />
+      </g>
+      {/* 崖沿いの街道と荷馬車 */}
+      <path d="M0 760 Q520 660 980 710 T1600 680 V900 H0Z" fill="#0d0814" />
+      <path d="M120 900 Q580 700 1120 695 L1360 705 Q920 760 460 900Z" fill="#2b2038" opacity="0.85" />
+      <g transform="translate(560, 560)">
+        <rect x="40" y="36" width="230" height="118" rx="22" fill="#26182c" stroke="#c9983f" strokeWidth="3" strokeOpacity="0.65" />
+        <path d="M55 36 Q155 -10 255 36" fill="#3b2644" stroke="#c9983f" strokeWidth="2" strokeOpacity="0.5" />
+        <rect x="125" y="62" width="60" height="42" rx="6" fill="#ffb45a" opacity="0.78" />
+        <Glow x={155} y={82} r={95} c="#ffb45a" o={0.28} />
+        <circle cx="95" cy="162" r="36" fill="#120c18" stroke="#c9983f" strokeWidth="5" />
+        <circle cx="220" cy="162" r="36" fill="#120c18" stroke="#c9983f" strokeWidth="5" />
+        <Candle x={282} y={92} />
+      </g>
+    </>
+  ),
   exterior: (
     <>
       <rect width="1600" height="900" fill="url(#g-dusk)" />

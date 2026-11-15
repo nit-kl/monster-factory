@@ -1,5 +1,7 @@
 # Project context — read first
 
+> Current battle and art specification: [BATTLE_LOADOUTS.md](BATTLE_LOADOUTS.md). All six monster species and three enemies use shared species illustrations; each monster selects two normal moves plus a fixed signature, and can change its moves in the hangar.
+
 ## Vision
 **モンスター製造課 ～魔王軍最後の工場～** is a browser-first fantasy factory game: combine TWO materials, discover a distinct monster as it takes shape in a 3D manufacturing scene, then watch it fight automatically with spectacular signature moves. Inspect results and try another recipe. It begins as workplace comedy in a struggling demonic factory but grows into a character-rich story about war, created life, and the choices of the workers. Current mechanics: `docs/MATERIAL_SYNTHESIS.md` (supersedes older organ-slot and production-management proposals).
 

@@ -1,32 +1,64 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cast } from '../data/cast';
 import { scenes } from '../data/script';
-import { advance, begin, current, type BgId, type CastId, type Cursor, type Fx } from '../domain/story';
+import { advance, begin, current, resolveMood, type BgId, type CastId, type CgId, type Cursor, type Fx, type Mood } from '../domain/story';
 import { useGame } from '../state/store';
 import { Backdrop } from './Backdrop';
+import { EventCg } from './EventCg';
 import { Portrait } from './Portrait';
 
 type LogEntry = { name?: string; text: string };
-type View = { cursor: Cursor; bg: BgId; left: CastId | null; right: CastId | null; last: CastId | null; fx: { kind: Fx; n: number } | null; flags: string[]; log: LogEntry[] };
+type View = {
+  cursor: Cursor;
+  bg: BgId;
+  cg: { id: CgId; caption?: string } | null;
+  left: CastId | null;
+  right: CastId | null;
+  leftMood: Mood;
+  rightMood: Mood;
+  pulse: number;
+  last: CastId | null;
+  fx: { kind: Fx; n: number } | null;
+  flags: string[];
+  log: LogEntry[];
+};
 
-/** 背景・演出・立ち位置など、表示を伴わない行をまとめて処理する。 */
+const moodLabels: Record<Exclude<Mood, 'normal'>, string> = {
+  angry: '苛立ち',
+  cold: '冷淡',
+  sad: '憂い',
+  surprised: '動揺',
+  smile: '柔和',
+  serious: '真剣',
+};
+
+/** 背景・演出・一枚絵・立ち位置など、表示を伴わない行をまとめて処理する。 */
 function settle(v: View): View {
   let next = v;
   for (;;) {
     const line = current(next.cursor);
     if (!line) return next;
     const step = () => advance(next.cursor, new Set(next.flags)).cursor;
-    if (line.t === 'bg') next = { ...next, bg: line.bg, cursor: step() };
+    if (line.t === 'bg') next = { ...next, bg: line.bg, cg: null, cursor: step() };
+    else if (line.t === 'cg') next = { ...next, cg: line.cg ? { id: line.cg, caption: line.caption } : null, cursor: step() };
     else if (line.t === 'fx') next = { ...next, fx: { kind: line.fx, n: (next.fx?.n ?? 0) + 1 }, cursor: step() };
-    else if (line.t === 'clear') next = { ...next, left: null, right: null, last: null, cursor: step() };
+    else if (line.t === 'clear') next = { ...next, cg: null, left: null, right: null, leftMood: 'normal', rightMood: 'normal', last: null, cursor: step() };
     else {
-      if (line.t === 'say' && cast[line.who].shade !== 'none' && line.who !== next.left && line.who !== next.right) {
-        if (!next.left) next = { ...next, left: line.who };
-        else if (!next.right) next = { ...next, right: line.who };
-        else if (next.last === next.left) next = { ...next, right: line.who };
-        else next = { ...next, left: line.who };
+      if (line.t === 'say') {
+        const mood = resolveMood(line);
+        if (cast[line.who].shade !== 'none' && line.who !== next.left && line.who !== next.right) {
+          if (!next.left) next = { ...next, left: line.who, leftMood: mood };
+          else if (!next.right) next = { ...next, right: line.who, rightMood: mood };
+          else if (next.last === next.left) next = { ...next, right: line.who, rightMood: mood };
+          else next = { ...next, left: line.who, leftMood: mood };
+        } else if (line.who === next.left) {
+          next = { ...next, leftMood: mood };
+        } else if (line.who === next.right) {
+          next = { ...next, rightMood: mood };
+        }
+        return { ...next, last: line.who, pulse: next.pulse + 1 };
       }
-      return line.t === 'say' ? { ...next, last: line.who } : next;
+      return next;
     }
   }
 }
@@ -41,7 +73,20 @@ function proceed(v: View, choiceIndex = 0): View {
 
 export function StoryPlayer({ sceneId }: { sceneId: string }) {
   const finishScene = useGame(s => s.finishScene), saved = useGame(s => s.progress.flags);
-  const [view, setView] = useState<View>(() => settle({ cursor: begin(scenes[sceneId] ?? [], new Set(saved)), bg: 'black', left: null, right: null, last: null, fx: null, flags: [...saved], log: [] }));
+  const [view, setView] = useState<View>(() => settle({
+    cursor: begin(scenes[sceneId] ?? [], new Set(saved)),
+    bg: 'black',
+    cg: null,
+    left: null,
+    right: null,
+    leftMood: 'normal',
+    rightMood: 'normal',
+    pulse: 0,
+    last: null,
+    fx: null,
+    flags: [...saved],
+    log: [],
+  }));
   const [chars, setChars] = useState(0), [auto, setAuto] = useState(false), [showLog, setShowLog] = useState(false);
   const line = current(view.cursor);
   const text = line && (line.t === 'say' || line.t === 'narr') ? line.text : '';
@@ -81,6 +126,7 @@ export function StoryPlayer({ sceneId }: { sceneId: string }) {
   }, [next, line]);
 
   const speaker = line?.t === 'say' ? line.who : null;
+  const speakerMood = line?.t === 'say' ? resolveMood(line) : 'normal';
   const name = line?.t === 'say' ? line.as ?? cast[line.who].name : null;
   return (
     <div className={`screen story ${view.fx?.kind === 'shake' ? `shake-${view.fx.n % 2}` : ''}`} data-testid="story" data-scene={sceneId}>
@@ -88,9 +134,10 @@ export function StoryPlayer({ sceneId }: { sceneId: string }) {
       <div className="story-vignette" />
       {view.fx && view.fx.kind !== 'shake' && <div key={view.fx.n} className={`story-${view.fx.kind}`} />}
       <div className="portraits">
-        {view.left && <Portrait key={view.left} id={view.left} className={`left ${speaker === view.left ? 'speaking' : 'dim'}`} />}
-        {view.right && <Portrait key={view.right} id={view.right} className={`right ${speaker === view.right ? 'speaking' : 'dim'}`} />}
+        {view.left && <Portrait key={view.left} id={view.left} mood={view.leftMood} pulseKey={speaker === view.left ? view.pulse : 0} className={`left ${speaker === view.left ? 'speaking' : 'dim'}`} />}
+        {view.right && <Portrait key={view.right} id={view.right} mood={view.rightMood} pulseKey={speaker === view.right ? view.pulse : 0} className={`right ${speaker === view.right ? 'speaking' : 'dim'}`} />}
       </div>
+      {view.cg && <EventCg key={view.cg.id} id={view.cg.id} caption={view.cg.caption} />}
       <div className="story-click" onClick={next} aria-hidden="true" />
       {line?.t === 'title' && (
         <div className="titlecard" onClick={next}><span>{line.over}</span><strong>{line.main}</strong></div>
@@ -101,8 +148,14 @@ export function StoryPlayer({ sceneId }: { sceneId: string }) {
         </div>
       )}
       {(line?.t === 'say' || line?.t === 'narr') && (
-        <div className={`textbox ${line.t}`} onClick={next}>
-          {name && <div className="nameplate" style={{ borderColor: speaker ? cast[speaker].color : undefined }}><strong>{name}</strong>{speaker && <small>{cast[speaker].role}</small>}</div>}
+        <div className={`textbox ${line.t} mood-box-${speakerMood}`} onClick={next}>
+          {name && (
+            <div className="nameplate" style={{ borderColor: speaker ? cast[speaker].color : undefined }}>
+              <strong>{name}</strong>
+              {speaker && <small>{cast[speaker].role}</small>}
+              {speakerMood !== 'normal' && <em className={`mood-tag mood-tag-${speakerMood}`}>{moodLabels[speakerMood]}</em>}
+            </div>
+          )}
           <p aria-live="polite"><span>{text.slice(0, chars)}</span><span className="ghost">{text.slice(chars)}</span></p>
           {!typing && <i className="more" aria-hidden="true">▼</i>}
         </div>

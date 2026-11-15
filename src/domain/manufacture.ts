@@ -1,7 +1,27 @@
 import { calculate, unitName, type Design, type Stats } from './design';
+import type { RecipeId } from '../data/recipes';
 
-export type Unit = { id: number; name: string; design: Design; stats: Stats; wins: number; losses: number };
-export const makeUnit = (design: Design, id: number): Unit => ({ id, name: unitName(design, id), design: { ...design }, stats: calculate(design), wins: 0, losses: 0 });
+export type Unit = { id: number; name: string; nickname?: string; design: Design; stats: Stats; wins: number; losses: number };
+export const makeUnit = (design: Design, id: number): Unit => ({ id, name: unitName(design, id), design: { ...design, ...(design.moves ? { moves: [...design.moves] as const } : {}) }, stats: calculate(design), wins: 0, losses: 0 });
+
+export const nicknamePresets: Record<RecipeId, readonly string[]> = {
+  wraith: ['クロガネ', 'ヨロイマル', '灯守'],
+  furnace: ['カマド', 'アカガネ', '焔心'],
+  bloom: ['ヒバナ', 'ベニバネ', '咲火'],
+  thorn: ['ネッコ', 'モリバン', '朽葉'],
+  prism: ['ツキカゲ', '蒼月', '硝子牙'],
+  bell: ['スズネ', 'ミナモ', '宵鐘'],
+};
+
+export function veteranBadge(u: Pick<Unit, 'wins' | 'losses'>): { title: string; tone: 'good' | 'info' } | null {
+  if (u.wins >= 5) return { title: '第七工場の誇り', tone: 'good' };
+  if (u.wins >= 3) return { title: '歴戦の勇士', tone: 'good' };
+  if (u.wins >= 1) return { title: '初陣の守り手', tone: 'info' };
+  if (u.losses >= 1) return { title: '生還個体', tone: 'info' };
+  return null;
+}
+
+export const unitTitle = (u: Pick<Unit, 'name' | 'nickname'>) => (u.nickname ? `${u.nickname}（${u.name}）` : u.name);
 
 /** 格納庫に置ける数。あふれた古い個体は療養棟へ移す（破棄しない）。 */
 export const hangarSize = 5;

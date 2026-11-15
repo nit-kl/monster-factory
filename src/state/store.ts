@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import type { EnemyId } from '../data/enemies';
 import { simulate, type BattleResult } from '../domain/battle';
-import { initialDesign, overCapacity, unlocked, recipeFor, type Design } from '../domain/design';
+import { calculate, initialDesign, overCapacity, unlocked, recipeFor, type Design } from '../domain/design';
 import { addToHangar, makeUnit, type Unit } from '../domain/manufacture';
-import { battleFinished, dayOf, initialProgress, manufactured, sceneFinished, type Progress } from '../domain/progress';
+import { battleFinished, dayOf, initialProgress, manufactured, sceneFinished, startChapter2, type Progress } from '../domain/progress';
 import { writeSave, type GameData } from '../domain/save';
+import { resolveMoves, type Loadout } from '../data/skills';
 
 export type Sub = 'hub' | 'design' | 'manufacture' | 'battle';
 export type ActiveBattle = { unit: Unit; enemy: EnemyId; result: BattleResult };
@@ -13,9 +14,12 @@ type State = GameData & {
   building: Design | null; lastBuilt: number | null; battle: ActiveBattle | null;
   newGame: () => void; resume: (data: GameData) => void; toTitle: () => void;
   finishScene: (flags: readonly string[]) => void;
+  advanceChapter: () => void;
   setDesign: (change: Partial<Design>) => void; go: (sub: Sub) => void;
   startManufacture: () => void; completeManufacture: () => void;
   startBattle: (unitId: number, enemy: EnemyId) => void; concludeBattle: () => void;
+  setUnitMoves: (unitId: number, moves: Loadout) => void;
+  setUnitNickname: (unitId: number, nickname: string) => void;
 };
 const fresh = (): GameData => ({ progress: initialProgress, design: { ...initialDesign }, roster: [], nextId: 1, battles: 0, moved: 0, discovered: [] });
 const transient = { sub: 'hub' as Sub, building: null, lastBuilt: null, battle: null };
@@ -26,7 +30,35 @@ export const useGame = create<State>((set, get) => ({
   resume: data => set({ ...data, ...transient, started: true }),
   toTitle: () => set({ started: false, ...transient }),
   finishScene: flags => set(s => ({ progress: sceneFinished(s.progress, flags), sub: 'hub' })),
-  setDesign: change => set(s => ({ design: { ...s.design, ...change } })),
+  advanceChapter: () => set(s => ({ progress: startChapter2(s.progress), sub: 'hub' })),
+  setDesign: change => set(s => {
+    const design = { ...s.design, ...change };
+    if (change.first || change.second) delete design.moves;
+    const recipe = recipeFor(design);
+    if (design.moves && recipe) design.moves = resolveMoves(recipe.id, design.moves);
+    return { design };
+  }),
+  setUnitMoves: (unitId, moves) => set(s => {
+    if (s.battle || s.building) return {};
+    return { roster: s.roster.map(u => {
+      if (u.id !== unitId) return u;
+      const design = { ...u.design, moves: resolveMoves(recipeFor(u.design)!.id, moves) };
+      return { ...u, design, stats: calculate(design) };
+    }) };
+  }),
+  setUnitNickname: (unitId, nickname) => set(s => {
+    if (s.battle || s.building) return {};
+    const trimmed = nickname.trim().slice(0, 20);
+    return {
+      roster: s.roster.map(u => {
+        if (u.id !== unitId) return u;
+        const next: Unit = { ...u };
+        if (trimmed) next.nickname = trimmed;
+        else delete next.nickname;
+        return next;
+      }),
+    };
+  }),
   go: sub => set({ sub }),
   startManufacture: () => set(s => (s.building || overCapacity(s.design) || !unlocked(dayOf(s.progress), s.design) ? {} : { building: { ...s.design }, sub: 'manufacture' })),
   completeManufacture: () => set(s => {

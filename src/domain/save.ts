@@ -5,6 +5,7 @@ import { recipeFor } from './design';
 import type { Design } from './design';
 import { makeUnit, hangarSize, type Unit } from './manufacture';
 import type { Progress } from './progress';
+import { movePools, type Loadout } from '../data/skills';
 
 /** 保存形式 v3。v2 の個体を配合へ移行し、性能は読込時に再計算する。 */
 export type SaveData = {
@@ -12,7 +13,7 @@ export type SaveData = {
   discovered: RecipeId[];
   progress: Progress;
   design: Design;
-  roster: { id: number; design: Design; wins: number; losses: number }[];
+  roster: { id: number; design: Design; wins: number; losses: number; nickname?: string }[];
   nextId: number; battles: number; moved: number;
 };
 export type GameData = { progress: Progress; design: Design; roster: Unit[]; nextId: number; battles: number; moved: number; discovered: RecipeId[] };
@@ -34,11 +35,17 @@ function legacyDesign(v: unknown): Design {
 }
 function design(v: unknown): Design {
   if (!isObject(v) || typeof v.first !== 'string' || typeof v.second !== 'string' || !Object.hasOwn(materials, v.first) || !Object.hasOwn(materials, v.second)) throw Error('設計データが不正です');
-  return { first: v.first, second: v.second } as Design;
+  const d = { first: v.first, second: v.second } as Design;
+  if (v.moves !== undefined) {
+    const r = recipeFor(d), selected = strings(v.moves, '技構成');
+    if (!r || selected.length !== 2 || selected[0] === selected[1] || selected.some(m => !movePools[r.id].includes(m as Loadout[number]))) throw Error('技構成が不正です');
+    d.moves = [selected[0], selected[1]] as Loadout;
+  }
+  return d;
 }
 
 export function toSave(g: GameData): SaveData {
-  return { version: 3, discovered: [...g.discovered], progress: g.progress, design: g.design, nextId: g.nextId, battles: g.battles, moved: g.moved, roster: g.roster.map(u => ({ id: u.id, design: u.design, wins: u.wins, losses: u.losses })) };
+  return { version: 3, discovered: [...g.discovered], progress: g.progress, design: g.design, nextId: g.nextId, battles: g.battles, moved: g.moved, roster: g.roster.map(u => ({ id: u.id, design: u.design, wins: u.wins, losses: u.losses, ...(u.nickname ? { nickname: u.nickname } : {}) })) };
 }
 export function parseSave(v: unknown): GameData {
   if (!isObject(v) || (v.version !== 2 && v.version !== 3)) throw Error('この保存形式には対応していません');
@@ -58,7 +65,12 @@ export function parseSave(v: unknown): GameData {
     ids.add(id);
     const d = parseDesign(r.design);
     if (!recipeFor(d)) throw Error('個体の配合が不正です');
-    return { ...makeUnit(d, id), wins: count(r.wins, '戦績'), losses: count(r.losses, '戦績') };
+    let nickname: string | undefined;
+    if (r.nickname !== undefined) {
+      if (typeof r.nickname !== 'string' || !r.nickname.trim() || r.nickname.trim().length > 20) throw Error('個体の愛称が不正です');
+      nickname = r.nickname.trim();
+    }
+    return { ...makeUnit(d, id), ...(nickname ? { nickname } : {}), wins: count(r.wins, '戦績'), losses: count(r.losses, '戦績') };
   });
   const discovered = v.version === 2 ? [] : strings(v.discovered, '発見の記録');
   if (discovered.some(id => !recipes.some(r => r.id === id))) throw Error('発見の記録が不正です');

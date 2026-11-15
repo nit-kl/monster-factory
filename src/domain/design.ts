@@ -1,6 +1,7 @@
 import { findRecipe, materials, type MaterialId, type RecipeId } from '../data/recipes';
-export type Design = { first: MaterialId; second: MaterialId };
-export type Stats = { hp: number; attack: number; speed: number; cost: number; selfBurn: number; heatProof: boolean; coldWeak: boolean; poison: boolean; regen: boolean; armor: number; bonus: number; recipe: RecipeId };
+import { resolveMoves, type Loadout } from '../data/skills';
+export type Design = { first: MaterialId; second: MaterialId; moves?: Loadout };
+export type Stats = { hp: number; attack: number; speed: number; cost: number; selfBurn: number; heatProof: boolean; coldWeak: boolean; poison: boolean; regen: boolean; armor: number; bonus: number; recipe: RecipeId; moves: Loadout };
 export type Note = { tone: 'warn' | 'good' | 'info'; text: string };
 export const initialDesign: Design = { first: 'iron', second: 'spirit' };
 export const recipeFor = (d: Design) => findRecipe(d.first, d.second);
@@ -9,7 +10,7 @@ export const overCapacity = (d: Design) => !recipeFor(d);
 export function calculate(d: Design): Stats {
   const r = recipeFor(d);
   if (!r) throw Error('この材料の組み合わせは製造できません');
-  return { hp: r.hp, attack: r.attack, speed: r.speed, cost: 0, selfBurn: 0, heatProof: !r.coldWeak, coldWeak: !!r.coldWeak, poison: !!r.poison, regen: !!r.regen, armor: r.armor, bonus: r.bonus, recipe: r.id };
+  return { hp: r.hp, attack: r.attack, speed: r.speed, cost: 0, selfBurn: 0, heatProof: !r.coldWeak, coldWeak: !!r.coldWeak, poison: !!r.poison, regen: !!r.regen, armor: r.armor, bonus: r.bonus, recipe: r.id, moves: resolveMoves(r.id, d.moves) };
 }
 export function designNotes(d: Design): Note[] {
   const r = recipeFor(d);

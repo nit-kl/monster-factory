@@ -89,6 +89,13 @@ try {
   }
   await page.getByRole('button', { name: '工場へ戻る', exact: true }).click();
   await fight('幽鐘クラゲ', '勝利', 'bell');
+  // 第1章（模擬戦3戦）完 → 第2章「孤立無援の防衛戦」へ進む
+  await id('ending').waitFor();
+  await id('start-chapter2').click();
+  await passStory();
+  // 第2章：6日目（前衛剣士）→ 7日目（奇襲弓兵）→ 8日目（先遣隊本隊3連戦）
+  await fight('熔炉巨人', '勝利');
+  await fight('焔花竜', '勝利');
   await expect(page.locator('.chapter')).toContainText('先遣隊');
   await fight('熔炉巨人', '勝利'); await fight('焔花竜', '勝利'); await fight('幽鐘クラゲ', '勝利', null, true);
   await id('ending').waitFor(); await shot('ending');

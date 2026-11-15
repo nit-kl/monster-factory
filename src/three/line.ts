@@ -42,7 +42,7 @@ export class LineScene {
     this.setMonster(design); this.idle = false; this.running = true; this.ms = 0; this.snap = true; this.lastStage = 'idle';
   }
   skip() { if (this.design) { this.ms = totalDuration(); this.snap = true; } }
-  dispose() { this.stage.dispose(); }
+  dispose() { this.monster?.dispose(); this.stage.dispose(); }
 
   private setMonster(design: Design | null) {
     this.monster?.dispose();

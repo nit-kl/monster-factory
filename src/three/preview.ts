@@ -50,5 +50,5 @@ export class Preview {
       this.target = 1; this.dist = 6;
     }
   }
-  dispose() { this.stage.dispose(); }
+  dispose() { this.monster?.dispose(); this.stage.dispose(); }
 }

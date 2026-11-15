@@ -4,18 +4,19 @@ import type { BattleEvent } from '../domain/battle';
 import { recipeFor, type Design } from '../domain/design';
 import { impactSound } from './sound';
 import { ball, box, canvasTexture, cone, cyl, glow, mesh, metal, Particles, Stage, std, torus } from './kit';
-import { buildHero } from './heroes';
 import { buildMonster, type Monster } from './monster';
+import { buildIllustratedEnemy } from './illustratedMonster';
 
 type Tween = { t: number; dur: number; step: (p: number) => void; done?: () => void };
 const MX = -2.4, EX = 2.4;
 
 /** 模擬戦の3D舞台。計算済みの戦闘記録を1件ずつ受け取って演出する。 */
 export class Arena {
-  private stage: Stage; private monster: Monster; private hero: ReturnType<typeof buildHero>;
+  private stage: Stage; private monster: Monster; private hero: Monster;
   private tweens: Tween[] = []; private shot: THREE.Mesh; private shotMat: THREE.MeshStandardMaterial;
   private sparks = new Particles(300, 0xffffff, 0.12); private shake = 0;
   private effects: THREE.Mesh[] = [];
+  private auras = new Set<THREE.Mesh>();
   private echoes: THREE.Group[] = [];
   private shock: THREE.Mesh;
   private attackTime = 0; private attackSpecial = false;
@@ -47,11 +48,14 @@ export class Arena {
       for (let i = 0; i < 4; i++) {
         const echo = this.monster.root.clone(true);
         const mat = new THREE.MeshBasicMaterial({ color: 0xb7c4ff, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
-        echo.traverse(o => { if (o instanceof THREE.Mesh) { o.material = mat; o.castShadow = false; } });
+        echo.traverse(o => {
+          if (o instanceof THREE.Sprite) { o.material = o.material.clone(); o.material.opacity = 0.25; o.material.color.setHex(0xb7c4ff); }
+          else if (o instanceof THREE.Mesh) { o.material = mat; o.castShadow = false; }
+        });
         echo.visible = false; s.add(echo); this.echoes.push(echo);
       }
     }
-    this.hero = buildHero(enemy); this.hero.root.scale.setScalar(1.3);
+    this.hero = buildIllustratedEnemy(enemy); this.hero.root.scale.setScalar(1.3);
     this.shotMat = glow(0xffa64a, 3); this.shot = mesh(ball(0.2, 14, 10), this.shotMat); this.shot.visible = false; this.shot.castShadow = false;
     this.shock = mesh(torus(1, 0.04), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }), [EX, 0.1, 0], [Math.PI / 2, 0, 0]); s.add(this.shock);
     for (let i = 0; i < 16; i++) {
@@ -80,6 +84,7 @@ export class Arena {
     this.stage.start();
   }
   reset() {
+    this.auras.forEach(ring => { ring.removeFromParent(); ring.geometry.dispose(); (ring.material as THREE.Material).dispose(); }); this.auras.clear();
     this.tweens = []; this.shot.visible = false;
     this.monster.root.position.set(MX, 0, 0); this.monster.root.rotation.set(0, Math.PI / 2 - 0.25, 0);
     this.hero.root.position.set(EX, 0, 0); this.hero.root.rotation.set(0, -Math.PI / 2 + 0.25, 0);
@@ -100,10 +105,10 @@ export class Arena {
       if (p > 0.5 && !struck) { struck = true; this.hit(from === 'monster' ? 'enemy' : 'monster', color); }
     }, () => { root.position.set(home, 0, 0); });
   }
-  private fire(from: 'monster' | 'enemy', color: number, scale: V3) {
+  private fire(from: 'monster' | 'enemy', color: number, scale: V3, damaging = true) {
     const a = from === 'monster' ? MX + 0.8 : EX - 0.6, b = from === 'monster' ? EX : MX;
     this.shotMat.color.setHex(color); this.shotMat.emissive.setHex(color); this.shot.scale.set(...scale); this.shot.visible = true;
-    this.add(0.3, p => { this.shot.position.set(a + (b - a) * p, 1.25 + Math.sin(p * Math.PI) * 0.4, 0.1); }, () => { this.shot.visible = false; this.hit(from === 'monster' ? 'enemy' : 'monster', color); });
+    this.add(0.3, p => { this.shot.position.set(a + (b - a) * p, 1.25 + Math.sin(p * Math.PI) * 0.4, 0.1); }, () => { this.shot.visible = false; if (damaging) this.hit(from === 'monster' ? 'enemy' : 'monster', color); });
   }
   play(e: BattleEvent) {
     if (e.actor === 'effects') {
@@ -112,12 +117,37 @@ export class Arena {
       return;
     }
     if (e.actor === 'monster') {
-      this.signature(e.special);
-      return;
+      if (e.special) { this.signature(true); return; }
     }
-    if (this.enemy === 'swordsman') this.lunge('enemy', 0xdfe8ff);
-    else if (this.enemy === 'archer') this.fire('enemy', 0xf0e0b0, [2.6, 0.18, 0.18]);
-    else this.fire('enemy', 0x7fe6ff, [1.4, 0.9, 0.9]);
+    this.skillEffect(e);
+  }
+  private aura(side: 'monster' | 'enemy', color: number, healing: boolean) {
+    const home = side === 'monster' ? MX : EX;
+    const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending });
+    const ring = mesh(torus(healing ? 0.65 : 0.9, 0.035), material, [home, 1.2, 0.25], healing ? [Math.PI / 2, 0, 0] : [0, 0, 0]);
+    this.stage.scene.add(ring);
+    this.auras.add(ring);
+    this.add(0.8, p => { ring.scale.setScalar(1 + p * 0.35); ring.position.y = healing ? 0.3 + p * 1.8 : 1.2; material.opacity = (1 - p) * 0.85; }, () => { this.auras.delete(ring); ring.removeFromParent(); ring.geometry.dispose(); material.dispose(); });
+  }
+  private skillEffect(e: BattleEvent) {
+    const side = e.actor === 'enemy' ? 'enemy' : 'monster', target = side === 'monster' ? 'enemy' : 'monster';
+    const color = new THREE.Color(e.color).getHex();
+    impactSound(e.special, e.fx === 'heal' ? 660 : e.fx === 'guard' ? 170 : e.fx === 'pierce' ? 520 : 280);
+    if (side === 'monster') { this.attackSpecial = false; this.attackTime = 0.65; }
+    if (e.fx === 'slash' || e.fx === 'rush' || e.fx === 'sword') {
+      this.lunge(side, color);
+      if (e.special) this.add(0.35, () => {}, () => { this.hit(target, color, 70); this.aura(target, color, false); });
+    } else if (e.fx === 'arrows' || e.fx === 'ice') {
+      for (let j = 0; j < 5; j++) this.add(0.12 * j + 0.05, () => {}, () => {
+        const home = target === 'monster' ? MX : EX;
+        (this.sparks.points.material as THREE.PointsMaterial).color.setHex(color);
+        this.sparks.burst(new THREE.Vector3(home + (j - 2) * 0.3, 2.2 - j * 0.3, 0.2), 22, e.fx === 'ice' ? 2.2 : 4);
+      });
+      this.fire(side, color, e.fx === 'arrows' ? [3, 0.15, 0.15] : [1.5, 2, 1.5]);
+    } else this.fire(side, color, e.fx === 'pierce' ? [3, 0.18, 0.18] : e.fx === 'poison' ? [0.9, 0.9, 0.9] : [1.3, 1.3, 1.3]);
+    if (e.guard) this.aura(side, color, false);
+    if (e.heal) this.aura(side, 0x8df0bd, true);
+    if (e.fx === 'drain') this.add(0.35, () => {}, () => this.fire(target, 0xd49cff, [0.7, 0.7, 0.7], false));
   }
   private signature(special: boolean) {
     const r = recipeFor(this.design)!, color = new THREE.Color(r.color).getHex();
@@ -176,6 +206,6 @@ export class Arena {
     if (loser) this.add(0.7, p => { loser.rotation.z = (loser === this.hero.root ? -1 : 1) * p * 1.45; loser.position.y = -p * 0.1; });
     if (winner) this.add(1.2, p => { winner.position.y = Math.abs(Math.sin(p * Math.PI * 3)) * 0.35; });
   }
-  dispose() { this.stage.dispose(); }
+  dispose() { this.monster.dispose(); this.hero.dispose(); this.stage.dispose(); }
 }
 type V3 = [number, number, number];

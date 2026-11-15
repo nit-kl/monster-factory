@@ -1,5 +1,7 @@
 # Technical design — browser-first proposal
 
+> 2026-11-15の全キャラクター2D化・技構成・保存互換は [BATTLE_LOADOUTS.md](BATTLE_LOADOUTS.md) を優先。
+
 > 現行実装はReact/TypeScript/Three.js。2026-11-14の配合改修・保存v3・検証は [MATERIAL_SYNTHESIS.md](MATERIAL_SYNTHESIS.md) を優先。以下のPhaser等は初期提案を含む。
 
 ## Target and deployment

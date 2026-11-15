@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { cast, staffIds, type StaffId } from '../data/cast';
+import { activeStaffIds, cast, type StaffId } from '../data/cast';
 import { enemies, type EnemyId } from '../data/enemies';
 import { advice, consultationReflection } from '../data/script';
-import { hangarSize } from '../domain/manufacture';
-import { dayOf, knownEnemies, stepOf } from '../domain/progress';
+import { hangarSize, nicknamePresets, unitTitle } from '../domain/manufacture';
+import { chapterOf, chapterTitle, dayOf, knownEnemies, stepOf } from '../domain/progress';
 import { useGame } from '../state/store';
 import { LineScene } from '../three/line';
+import { soundEnabled, toggleSound } from '../three/sound';
 import { Canvas3D, UnitCard } from './common';
+import { resolveMood } from '../domain/story';
 import { Portrait, Thumb } from './Portrait';
 import { CreatureArt } from './CreatureArt';
+import { MoveEditor } from './MoveEditor';
+import { enemySkills } from '../data/skills';
 
 export function EnemyInfo({ id }: { id: EnemyId }) {
   const e = enemies[id];
@@ -18,6 +22,7 @@ export function EnemyInfo({ id }: { id: EnemyId }) {
       <strong>{e.name}</strong>
       <span>耐久 {e.hp}</span><span>攻撃 {e.attack}</span><span>速度 {e.speed}</span>
       <p>{e.note}</p>
+      <p className="move-summary">{enemySkills[id].map(s => s.name).join(' → ')}</p>
     </div>
   );
 }
@@ -25,15 +30,17 @@ export function EnemyInfo({ id }: { id: EnemyId }) {
 function Consult({ enemy, onClose }: { enemy: EnemyId; onClose: () => void }) {
   const [who, setWho] = useState<StaffId>('lisette'), [i, setI] = useState(0);
   const day = useGame(s => dayOf(s.progress));
+  const members = activeStaffIds(day);
   const lines = [...advice[enemy][who], consultationReflection(who, day)], c = cast[who];
+  const mood = resolveMood({ t: 'say', who, text: lines[i] });
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [onClose]);
   return (
     <div className="modal" role="dialog" aria-label="仲間に相談">
       <div className="consult">
-        <Portrait id={who} className="consult-portrait speaking" />
+        <Portrait id={who} mood={mood} pulseKey={i} className="consult-portrait speaking" />
         <div className="consult-main">
           <div className="consult-tabs">
-            {staffIds.map(id => <button key={id} aria-pressed={id === who} onClick={() => { setWho(id); setI(0); }}><Thumb id={id} />{cast[id].name}</button>)}
+            {members.map(id => <button key={id} aria-pressed={id === who} onClick={() => { setWho(id); setI(0); }}><Thumb id={id} />{cast[id].name}</button>)}
           </div>
           <div className="textbox say static">
             <div className="nameplate" style={{ borderColor: c.color }}><strong>{c.name}</strong><small>{c.role}</small></div>
@@ -50,12 +57,14 @@ function Consult({ enemy, onClose }: { enemy: EnemyId; onClose: () => void }) {
 }
 
 export function Hub() {
-  const { progress, roster, lastBuilt, moved, go, startBattle, toTitle } = useGame();
+  const { progress, roster, lastBuilt, moved, go, startBattle, toTitle, setUnitMoves, setUnitNickname } = useGame();
   const step = stepOf(progress), objective = step.kind === 'objective' ? step : null;
+  const chapter = chapterOf(progress);
   const known = knownEnemies(progress);
   const [selected, setSelected] = useState<number | null>(lastBuilt ?? roster[roster.length - 1]?.id ?? null);
   const [enemy, setEnemy] = useState<EnemyId>(objective?.enemy ?? 'swordsman');
   const [consult, setConsult] = useState(false);
+  const [sound, setSound] = useState(soundEnabled);
   const scene = useRef<LineScene | null>(null);
   const unit = roster.find(u => u.id === selected) ?? null;
   useEffect(() => { scene.current?.showIdle(unit?.design ?? null); }, [unit]);
@@ -67,7 +76,7 @@ export function Hub() {
       <Canvas3D className="fill" create={h => new LineScene(h)} onReady={ready} />
       <div className="shade-top" /><div className="shade-bottom" />
       <header className="hud-top">
-        <div className="chapter"><small>第1章　最後の工場</small><strong>{dayOf(progress)}日目</strong>{objective.raid && <em>先遣隊 襲来</em>}</div>
+        <div className="chapter"><small>{chapterTitle(chapter)}</small><strong>{dayOf(progress)}日目</strong>{objective.raid && <em>{chapter === 6 ? '最終防衛戦' : chapter === 5 ? '強硬派 襲来' : chapter === 4 ? '騎士団 襲来' : chapter === 3 ? '調査隊 襲来' : '先遣隊 襲来'}</em>}</div>
         <div className="objective panel">
           <small>{objective.raid ? '迎撃' : '目標'}</small>
           <h2>{objective.title}</h2>
@@ -79,6 +88,28 @@ export function Hub() {
         <h2>格納庫 <small>{roster.length} / {hangarSize}</small></h2>
         {roster.length === 0 && <p className="empty">まだ個体がいません。配合台で材料を選んで、最初の命をつくりましょう。</p>}
         {[...roster].reverse().map(u => <UnitCard key={u.id} unit={u} selected={u.id === selected} onSelect={() => setSelected(u.id)} />)}
+        {unit && (
+          <>
+            <MoveEditor recipe={unit.stats.recipe} selected={unit.stats.moves} onChange={moves => setUnitMoves(unit.id, moves)} />
+            <section className="nickname-editor" aria-label="個体の愛称">
+              <h3>愛称（名付け）</h3>
+              <input
+                type="text"
+                aria-label="愛称入力"
+                maxLength={20}
+                placeholder={unit.name}
+                value={unit.nickname ?? ''}
+                onChange={e => setUnitNickname(unit.id, e.target.value)}
+              />
+              <div className="nickname-presets">
+                {nicknamePresets[unit.stats.recipe].map(preset => (
+                  <button key={preset} type="button" onClick={() => setUnitNickname(unit.id, preset)}>{preset}</button>
+                ))}
+                {unit.nickname && <button type="button" onClick={() => setUnitNickname(unit.id, '')}>戻す</button>}
+              </div>
+            </section>
+          </>
+        )}
         {moved > 0 && <p className="note">療養棟で休んでいる個体：{moved}体</p>}
       </aside>
       <footer className="hud-bottom">
@@ -91,10 +122,11 @@ export function Hub() {
           )}
           <button className="big primary" disabled={!unit} onClick={() => unit && startBattle(unit.id, enemy)} data-testid="go-battle">
             <b>{practice ? '練習試合' : objective.raid ? '迎撃に出す' : '模擬戦に出す'}</b>
-            <small>{unit ? `${unit.name} ／ 相手：${enemies[enemy].name}` : '格納庫の個体を選んでください'}</small>
+            <small>{unit ? `${unitTitle(unit)} ／ 相手：${enemies[enemy].name}` : '格納庫の個体を選んでください'}</small>
           </button>
         </div>
         <button className="big" onClick={() => setConsult(true)}><b>仲間に相談</b><small>いまの相手について聞く</small></button>
+        <button className="ghost" onClick={() => setSound(toggleSound())} aria-pressed={sound}>サウンド：{sound ? '入' : '切'}<small>BGM・効果音</small></button>
         <button className="ghost" onClick={toTitle}>タイトルへ<small>進行は自動保存されます</small></button>
       </footer>
       {consult && <Consult enemy={objective.enemy} onClose={() => setConsult(false)} />}

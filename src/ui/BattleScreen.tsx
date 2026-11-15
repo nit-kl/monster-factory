@@ -9,7 +9,10 @@ import { Thumb } from './Portrait';
 import { CreatureArt } from './CreatureArt';
 import { MonsterIcon } from './RecipeArt';
 import { recipeFor } from '../domain/design';
-import { toggleSound, soundEnabled } from '../three/sound';
+import { unitTitle } from '../domain/manufacture';
+import { chimeSound, toggleSound, soundEnabled } from '../three/sound';
+import { enemySkills } from '../data/skills';
+import { MoveSummary } from './MoveEditor';
 
 type Pop = { id: number; side: 'monster' | 'enemy'; text: string; tone: string };
 
@@ -28,7 +31,10 @@ export function BattleScreen() {
     if (ended) {
       // 最後の一撃も最後まで見せてから、倒れる動作と結果へ進む。
       const duration = (log.at(-1)?.special ? 1800 : 1000) / (fast ? 2 : 1);
-      const finish = window.setTimeout(() => arena.current?.finish(battle.result.outcome), duration);
+      const finish = window.setTimeout(() => {
+        arena.current?.finish(battle.result.outcome);
+        chimeSound(battle.result.outcome === 'win' ? 'win' : 'loss');
+      }, duration);
       const id = window.setTimeout(() => setReport(true), duration + 1500);
       return () => { window.clearTimeout(finish); window.clearTimeout(id); };
     }
@@ -41,6 +47,7 @@ export function BattleScreen() {
       if (e.actor === 'enemy') pop('monster', `-${e.damage}${e.cold ? '　冷気！' : ''}`, e.cold ? 'cold' : 'hit');
       if (e.poison) pop('enemy', `毒 -${e.poison}`, 'poison');
       if (e.heal) pop('monster', `+${e.heal}`, 'heal');
+      if (e.guard) pop(e.actor === 'enemy' ? 'enemy' : 'monster', `防御 +${e.guard}`, 'cold');
       setPops(p => [...p.slice(-6), ...add]);
       setI(n => n + 1);
     }, i === 0 ? 900 : (log[i - 1]?.special ? 1800 : 1000) / (fast ? 2 : 1));
@@ -55,16 +62,17 @@ export function BattleScreen() {
   const attacks = log.slice(0, i).filter(e => e.actor === 'monster').length;
   const leave = (toDesign: boolean) => { conclude(); if (toDesign) go('design'); };
   return (
-    <div className="screen battle" data-testid="battle" data-outcome={report ? result.outcome : ''}>
+    <div className="screen battle" data-testid="battle" data-outcome={report ? result.outcome : ''} data-skill={shown?.skill ?? ''} data-actor={shown?.actor ?? ''}>
       <Canvas3D className="fill" create={h => new Arena(h, unit.design, enemy)} onReady={ready} />
       <div className="shade-top" /><div className="shade-bottom" />
       <header className="duel">
         <div className="side">
           <MonsterIcon id={recipeFor(unit.design)!.id} />
-          <strong>{unit.name}</strong>
+          <strong>{unitTitle(unit)}</strong>
           <div className="hpbar"><i style={{ width: `${(monsterHp / result.maxHp) * 100}%` }} /></div>
           <span data-testid="monster-hp">{monsterHp} / {result.maxHp}</span>
           <div className="ability-charge"><span>{recipe.skill}</span><span>{[0, 1, 2].map(n => <i key={n} className={n < attacks % 3 ? 'charged' : ''} />)}</span><small>3回目の攻撃で発動</small></div>
+          <MoveSummary recipe={recipe.id} selected={unit.stats.moves} />
         </div>
         <div className="turn"><small>巡目</small><b>{shown?.turn ?? 1}</b></div>
         <div className="side foe">
@@ -72,9 +80,10 @@ export function BattleScreen() {
           <strong>{foe.name}</strong>
           <div className="hpbar"><i style={{ width: `${(enemyHp / foe.hp) * 100}%` }} /></div>
           <span>{enemyHp} / {foe.hp}</span>
+          <p className="move-summary">{enemySkills[enemy].map(s => s.name).join(' → ')}</p>
         </div>
       </header>
-      {shown?.special && !report && <div className="ability-banner" key={i} style={{ borderColor: recipe.color }} data-testid="signature"><small>{recipe.epithet} · 固有技</small><strong style={{ color: recipe.color }}>{recipe.skill}</strong><span>盾を貫通 · {shown.damage} DAMAGE</span></div>}
+      {shown && shown.actor !== 'effects' && !report && <div className={`ability-banner ${shown.special ? '' : 'normal-skill'}`} key={i} style={{ borderColor: shown.color }} data-testid={shown.special ? 'signature' : 'normal-skill'}><small>{shown.actor === 'monster' ? unitTitle(unit) : foe.name} · {shown.special ? '固有技' : '通常技'}</small><strong style={{ color: shown.color }}>{shown.skillName}</strong><span>{shown.damage} DAMAGE{shown.heal ? ` ／ 回復 ${shown.heal}` : ''}{shown.guard ? ` ／ 防御 ${shown.guard}` : ''}</span></div>}
       <div className="pops" aria-hidden="true">{pops.map(p => <span key={p.id} className={`pop ${p.side} ${p.tone}`}>{p.text}</span>)}</div>
       {!report && (
         <>

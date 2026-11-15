@@ -1,27 +1,58 @@
 // 会話劇の台本形式と、その読み進め方（純粋な状態機械）。
-export type CastId = 'lisette' | 'vargas' | 'orphen' | 'poyon' | 'pluru' | 'zelva' | 'maou' | 'maid' | 'captain';
-export type BgId = 'black' | 'throne' | 'study' | 'corridor' | 'exterior' | 'floor' | 'lab' | 'roof' | 'workshop' | 'tank' | 'gate';
+export type CastId =
+  | 'lisette' | 'vargas' | 'orphen' | 'poyon' | 'pluru'
+  | 'vera' | 'mimi' | 'arachnea' | 'gradius' | 'noah'
+  | 'zelva' | 'maou' | 'maid' | 'captain'
+  | 'nephira' | 'seil' | 'luka' | 'grave' | 'gardran';
+export type BgId = 'black' | 'throne' | 'study' | 'corridor' | 'road' | 'exterior' | 'floor' | 'lab' | 'roof' | 'workshop' | 'tank' | 'gate';
 export type Fx = 'shake' | 'flash' | 'glow';
+export type Mood = 'normal' | 'angry' | 'cold' | 'sad' | 'surprised' | 'smile' | 'serious';
+export type CgId =
+  | 'throne_puppet'
+  | 'maid_ring'
+  | 'world_map'
+  | 'cold_welcome'
+  | 'first_birth'
+  | 'gate_defense'
+  | 'broken_seal'
+  | 'white_flag'
+  | 'broken_horn_memory'
+  | 'pluru_crown';
 export type Option = { label: string; flag?: string; then: readonly Line[] };
 export type Line =
-  | { t: 'say'; who: CastId; text: string; as?: string }
+  | { t: 'say'; who: CastId; text: string; as?: string; mood?: Mood }
   | { t: 'narr'; text: string }
   | { t: 'title'; over: string; main: string }
   | { t: 'bg'; bg: BgId }
+  | { t: 'cg'; cg: CgId | null; caption?: string }
   | { t: 'fx'; fx: Fx }
   | { t: 'clear' }
   | { t: 'choice'; options: readonly Option[] }
   | { t: 'if'; flag: string; then: readonly Line[]; else?: readonly Line[] };
 
-export const say = (who: CastId, text: string, as?: string): Line => ({ t: 'say', who, text, as });
+export const say = (who: CastId, text: string, as?: string, mood?: Mood): Line => ({ t: 'say', who, text, as, mood });
 export const narr = (text: string): Line => ({ t: 'narr', text });
 export const title = (over: string, main: string): Line => ({ t: 'title', over, main });
 export const bg = (id: BgId): Line => ({ t: 'bg', bg: id });
+export const cg = (id: CgId | null, caption?: string): Line => ({ t: 'cg', cg: id, caption });
 export const fx = (f: Fx): Line => ({ t: 'fx', fx: f });
 export const clear: Line = { t: 'clear' };
 export const opt = (label: string, then: readonly Line[], flag?: string): Option => ({ label, then, flag });
 export const choice = (...options: Option[]): Line => ({ t: 'choice', options });
 export const when = (flag: string, then: readonly Line[], otherwise?: readonly Line[]): Line => ({ t: 'if', flag, then, else: otherwise });
+
+/** 台詞の文脈から立ち絵の表情・ポーズ変化を自動推定する（明示指定があればそれを優先）。 */
+export function resolveMood(line: Extract<Line, { t: 'say' }>): Mood {
+  if (line.mood) return line.mood;
+  const t = line.text;
+  if (/！？|\?!|なんだと|まさか|しゃべったか|うそ、/.test(t)) return 'surprised';
+  if (/触るな|指図するな|ふざけるな|帰れ|追い出|黙ってたのか|隠して|許さない|ぶっ飛ばす|破れええ/.test(t)) return 'angry';
+  if (/結構です|お帰り|信用したわけでは|よそ者|事務|線を引|知りません|報告だけ|不適格|冷ややか/.test(t)) return 'cold';
+  if (/……|すまない|恨め|死んだ|崩御|寂し|つらい|ごめんなさい/.test(t)) return 'sad';
+  if (/ありがとう|よかった|ようこそ|ふふ|嬉しい|大好き|誇り|頑張り|おかえり/.test(t)) return 'smile';
+  if (/記録|設計|報告|命令|規約|約束|王命|総員|迎撃/.test(t)) return 'serious';
+  return 'normal';
+}
 
 export type Cursor = { stack: readonly { lines: readonly Line[]; i: number }[] };
 
