@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { clearSave, readSave } from '../domain/save';
-import { blueprintTraits, chapterOf, chapterTitle, dayOf, sceneOf, viewOf } from '../domain/progress';
+import { blueprintTraits, chapterOf, chapterTitle, dayOf, sceneOf, viewOf, type ChapterNum } from '../domain/progress';
 import type { GameData } from '../domain/save';
 import { useGame } from '../state/store';
+import { previewMode } from '../state/previewMode';
+import { PreviewMenu } from './PreviewMenu';
 import { setSceneMood } from '../three/sound';
 import { Backdrop } from './Backdrop';
 import { BattleScreen } from './BattleScreen';
+import { TowerScreen } from './TowerScreen';
 import { DesignScreen } from './DesignScreen';
 import { Hub } from './Hub';
 import { ManufactureScreen } from './ManufactureScreen';
@@ -17,7 +20,7 @@ function Title() {
   const save = useMemo<{ data: GameData | null; error: string | null }>(() => {
     try { return { data: readSave(), error: null }; } catch (e) { return { data: null, error: e instanceof Error ? e.message : '保存データを読み込めませんでした' }; }
   }, []);
-  const start = () => { clearSave(); newGame(); };
+  const start = () => { if (!previewMode) clearSave(); newGame(); };
   return (
     <div className="screen title" data-testid="title">
       <Backdrop bg="exterior" />
@@ -34,40 +37,42 @@ function Title() {
               <div className="row"><button className="primary" onClick={start} data-testid="confirm-new">はじめから始める</button><button onClick={() => setConfirm(false)}>やめる</button></div>
             </div>
           ) : (
-            <button className={`big ${save.data ? '' : 'primary'}`} onClick={() => (save.data ? setConfirm(true) : start())} data-testid="new-game"><b>はじめから</b><small>序章「特命」</small></button>
+            <button className={`big ${save.data ? '' : 'primary'}`} onClick={() => (save.data && !previewMode ? setConfirm(true) : start())} data-testid="new-game"><b>はじめから</b><small>序章「特命」</small></button>
           )}
         </div>
         {save.error && <p className="note warn">保存データを読み込めませんでした（{save.error}）。</p>}
-        <p className="note">全6章（序章〜終章「王を設計する」）収録。進行はこのブラウザに自動保存されます。</p>
+        <p className="note">全8章、百日目まで。読みながら配合と戦闘を重ねると、およそ10時間です。進行はこのブラウザに自動保存されます。</p>
         <p className="note">二つの材料から、ひとつの命。6種類の魔物と、それぞれの固有技を発見してください。</p>
       </div>
     </div>
   );
 }
 
-const nextChapterButtonLabel: Record<1 | 2 | 3 | 4 | 5, { title: string; sub: string; testId: string }> = {
+const nextChapterButtonLabel: Partial<Record<ChapterNum, { title: string; sub: string; testId: string }>> = {
   1: { title: '第2章「孤立無援の防衛戦」へ進む', sub: '包囲された谷門と先遣隊の総攻撃', testId: 'start-chapter2' },
-  2: { title: '第3章「王の部品」へ進む', sub: '特別資材の到着と暴かれる密命', testId: 'start-chapter3' },
-  3: { title: '第4章「勇者の影」へ進む', sub: '白布の騎士ノアと魔導技師ルカ', testId: 'start-chapter4' },
-  4: { title: '第5章「先代の遺言」へ進む', sub: '青い硝子の指輪の侍女と三年前の真実', testId: 'start-chapter5' },
-  5: { title: '終章「王を設計する」へ進む', sub: '設計台の空席と戦わない王の王命', testId: 'start-chapter6' },
+  2: { title: '第3章「角の王」へ進む', sub: '納期まで残り九十一日。右角が届く', testId: 'start-chapter3' },
+  3: { title: '第4章「牙の王」へ進む', sub: '従うだけの王と、獣王ロウガ', testId: 'start-chapter4' },
+  4: { title: '第5章「腕の王」へ進む', sub: '勇者軍本隊と、炎将の右腕', testId: 'start-chapter5' },
+  5: { title: '第6章「折れ角の王」へ進む', sub: '人間が作った、戦わない王', testId: 'start-chapter6' },
+  6: { title: '第7章「目の王」へ進む', sub: '宰相が隠していた左目', testId: 'start-chapter7' },
+  7: { title: '終章「王を設計する」へ進む', sub: '百日目。席をプルルに譲る', testId: 'start-chapter8' },
 };
 
 function Ending() {
   const { progress, discovered, nextId, battles, roster, advanceChapter, toTitle } = useGame();
   const chapter = chapterOf(progress);
   const traits = blueprintTraits(progress, discovered.length, nextId - 1);
-  const nextBtn = chapter !== 6 ? nextChapterButtonLabel[chapter] : null;
+  const nextBtn = nextChapterButtonLabel[chapter] ?? null;
   return (
     <div className="screen ending" data-testid="ending">
       <Backdrop bg="lab" />
       <div className="story-vignette" />
       <div className="ending-body">
         <small>{chapterTitle(chapter)}</small>
-        <h1>{chapter === 6 ? '大団円' : '完'}</h1>
+        <h1>{chapter === 8 ? '大団円' : '完'}</h1>
         <div className="blueprint" aria-label="王の設計図">
           <strong>王の設計図</strong>
-          <p>{traits.length ? (chapter === 6 ? '白紙だった設計図には、あなたと仲間たちが積み重ねたすべての記録が刻まれている。' : `白紙だった紙の端に、${chapterTitle(chapter)}までの働きが淡く浮かび上がっている。`) : 'まだ、何も書かれていない。'}</p>
+          <p>{traits.length ? (chapter === 8 ? '白紙だった設計図には、百日の失敗と、プルルが自分で消した武器の欄が残っている。' : `白紙だった紙の端に、${chapterTitle(chapter)}までの働きが淡く浮かび上がっている。`) : 'まだ、何も書かれていない。'}</p>
           {traits.length > 0 && (
             <ul className="blueprint-traits" data-testid="blueprint-traits">
               {traits.map(t => <li key={t.id}><b>{t.title}</b><span>{t.note}</span></li>)}
@@ -91,7 +96,7 @@ function Ending() {
   );
 }
 
-export function App() {
+function GameScreen() {
   const started = useGame(s => s.started), progress = useGame(s => s.progress), sub = useGame(s => s.sub);
   const view = viewOf(progress), scene = sceneOf(progress);
   useEffect(() => {
@@ -104,9 +109,17 @@ export function App() {
     else setSceneMood('hub');
   }, [started, sub, view, scene]);
   if (!started) return <Title />;
-  if (sub === 'battle') return <BattleScreen />;
+  if (sub === 'battle') return useGame.getState().towerBattle ? <TowerScreen /> : <BattleScreen />;
   if (sub === 'manufacture') return <ManufactureScreen />;
   if (view === 'story' && scene) return <StoryPlayer key={`${scene}-${progress.step}-${progress.seen.length}`} sceneId={scene} />;
   if (view === 'end') return <Ending />;
   return sub === 'design' ? <DesignScreen /> : <Hub />;
+}
+
+export function App() {
+  const [previewRun, setPreviewRun] = useState(0);
+  return <>
+    <GameScreen key={previewRun} />
+    {previewMode && <PreviewMenu onJump={() => setPreviewRun(run => run + 1)} />}
+  </>;
 }

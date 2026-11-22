@@ -1,3 +1,5 @@
+﻿import { Reading } from './Reading';
+import { WalkControls } from './WalkControls';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { activeStaffIds, cast, type StaffId } from '../data/cast';
 import { enemies, type EnemyId } from '../data/enemies';
@@ -44,7 +46,7 @@ function Consult({ enemy, onClose }: { enemy: EnemyId; onClose: () => void }) {
           </div>
           <div className="textbox say static">
             <div className="nameplate" style={{ borderColor: c.color }}><strong>{c.name}</strong><small>{c.role}</small></div>
-            <p>{lines[i]}</p>
+            <p><Reading text={lines[i]} /></p>
           </div>
           <div className="row end">
             {i < lines.length - 1 ? <button className="primary" onClick={() => setI(i + 1)}>続きを聞く</button> : <button className="primary" onClick={onClose}>ありがとう</button>}
@@ -65,6 +67,8 @@ export function Hub() {
   const [enemy, setEnemy] = useState<EnemyId>(objective?.enemy ?? 'swordsman');
   const [consult, setConsult] = useState(false);
   const [sound, setSound] = useState(soundEnabled);
+  const [walking, setWalking] = useState(false);
+  const endWalk = useCallback(() => setWalking(false), []);
   const scene = useRef<LineScene | null>(null);
   const unit = roster.find(u => u.id === selected) ?? null;
   useEffect(() => { scene.current?.showIdle(unit?.design ?? null); }, [unit]);
@@ -72,21 +76,21 @@ export function Hub() {
   if (!objective) return null;
   const practice = enemy !== objective.enemy;
   return (
-    <div className="screen hub" data-testid="hub">
+    <div className={walking ? "screen hub walking" : "screen hub"} data-testid="hub">
       <Canvas3D className="fill" create={h => new LineScene(h)} onReady={ready} />
       <div className="shade-top" /><div className="shade-bottom" />
       <header className="hud-top">
-        <div className="chapter"><small>{chapterTitle(chapter)}</small><strong>{dayOf(progress)}日目</strong>{objective.raid && <em>{chapter === 6 ? '最終防衛戦' : chapter === 5 ? '強硬派 襲来' : chapter === 4 ? '騎士団 襲来' : chapter === 3 ? '調査隊 襲来' : '先遣隊 襲来'}</em>}</div>
+        <div className="chapter"><small>{chapterTitle(chapter)}</small><strong>{dayOf(progress)}日目</strong><em>約束の日まであと{Math.max(0, 100 - dayOf(progress))}日</em>{objective.raid && <em>迎撃</em>}</div>
         <div className="objective panel">
           <small>{objective.raid ? '迎撃' : '目標'}</small>
-          <h2>{objective.title}</h2>
-          <p>{objective.text}</p>
+          <h2><Reading text={objective.title} /></h2>
+          <p><Reading text={objective.text} /></p>
           <EnemyInfo id={objective.enemy} />
         </div>
       </header>
-      <aside className="hangar panel">
-        <h2>格納庫 <small>{roster.length} / {hangarSize}</small></h2>
-        {roster.length === 0 && <p className="empty">まだ個体がいません。配合台で材料を選んで、最初の命をつくりましょう。</p>}
+      <aside className="hangar panel" tabIndex={-1}>
+        <h2><Reading text="格納庫" /> <small>{roster.length} / {hangarSize}</small></h2>
+        {roster.length === 0 && <p className="empty">まだ魔物がいません。配合台で材料を選んで、最初の命をつくりましょう。</p>}
         {[...roster].reverse().map(u => <UnitCard key={u.id} unit={u} selected={u.id === selected} onSelect={() => setSelected(u.id)} />)}
         {unit && (
           <>
@@ -112,7 +116,7 @@ export function Hub() {
         )}
         {moved > 0 && <p className="note">療養棟で休んでいる個体：{moved}体</p>}
       </aside>
-      <footer className="hud-bottom">
+      <footer className="hud-bottom"><button className="big" onClick={() => setWalking(true)}>工場を歩く</button>
         <button className="big" onClick={() => go('design')} data-testid="go-design"><b>配合台へ</b><small>2F 研究フロア ／ 二つの材料から魔物をつくる</small></button>
         <div className="sortie">
           {known.length > 1 && (
@@ -120,16 +124,20 @@ export function Hub() {
               {known.map(id => <button key={id} aria-pressed={id === enemy} onClick={() => setEnemy(id)}>{enemies[id].name}{id === objective.enemy ? '（目標）' : ''}</button>)}
             </div>
           )}
-          <button className="big primary" disabled={!unit} onClick={() => unit && startBattle(unit.id, enemy)} data-testid="go-battle">
-            <b>{practice ? '練習試合' : objective.raid ? '迎撃に出す' : '模擬戦に出す'}</b>
-            <small>{unit ? `${unitTitle(unit)} ／ 相手：${enemies[enemy].name}` : '格納庫の個体を選んでください'}</small>
+          <button className="big primary" disabled={!unit || !!unit.away || (!!objective.fresh && !practice && unit.id < (progress.cohort ?? 1))} onClick={() => unit && startBattle(unit.id, enemy)} data-testid="go-battle">
+            <b>{practice ? '練習試合' : objective.raid ? '敵をむかえうつ' : '練習戦に出す'}</b>
+            <small>{unit?.away ? 'この子は製造ラインの中です' : objective.fresh && !practice && unit && unit.id < (progress.cohort ?? 1) ? 'この目標が出たあとに作った魔物を選んでください' : unit ? `${unitTitle(unit)} ／ 相手：${enemies[enemy].name}` : '格納庫から魔物を選んでください'}</small>
           </button>
         </div>
         <button className="big" onClick={() => setConsult(true)}><b>仲間に相談</b><small>いまの相手について聞く</small></button>
         <button className="ghost" onClick={() => setSound(toggleSound())} aria-pressed={sound}>サウンド：{sound ? '入' : '切'}<small>BGM・効果音</small></button>
         <button className="ghost" onClick={toTitle}>タイトルへ<small>進行は自動保存されます</small></button>
       </footer>
+      {walking && <WalkControls scene={scene} close={endWalk} design={() => go('design')} hangar={() => { endWalk(); requestAnimationFrame(() => document.querySelector<HTMLElement>('.hangar')?.focus()); }} />}
       {consult && <Consult enemy={objective.enemy} onClose={() => setConsult(false)} />}
     </div>
   );
 }
+
+
+

@@ -1,3 +1,4 @@
+﻿import { WalkControls } from './WalkControls';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cast } from '../data/cast';
 import { lineComments } from '../data/lineComments';
@@ -14,6 +15,8 @@ import { MoveSummary } from './MoveEditor';
 export function ManufactureScreen() {
   const building = useGame(s => s.building), nextId = useGame(s => s.nextId), complete = useGame(s => s.completeManufacture);
   const [ms, setMs] = useState(0), [fast, setFast] = useState(false);
+  const [walking, setWalking] = useState(false);
+  const endWalk = useCallback(() => setWalking(false), []);
   const scene = useRef<LineScene | null>(null), last = useRef(0);
   const comments = useMemo(() => (building ? lineComments(building) : {}), [building]);
   const ready = useCallback((s: LineScene | null) => {
@@ -30,7 +33,7 @@ export function ManufactureScreen() {
   const measured = at.index >= 6;
   const recipe = recipeFor(building)!;
   return (
-    <div className="screen manufacture" data-testid="manufacture-screen" data-done={at.done}>
+    <div className={walking && !at.done ? "screen manufacture walking" : "screen manufacture"} data-testid="manufacture-screen" data-done={at.done}>
       <Canvas3D className="fill" create={h => new LineScene(h)} onReady={ready} />
       <div className="shade-top" /><div className="shade-bottom" />
       <header className="hud-top">
@@ -56,6 +59,7 @@ export function ManufactureScreen() {
           <div><strong style={{ color: cast[comment.who].color }}>{cast[comment.who].name}</strong><p>{comment.text}</p></div>
         </div>
       )}
+      {walking && !at.done && <WalkControls scene={scene} close={endWalk} />}
       {at.done ? (
         <div className="modal result-modal">
           <div className="finished panel">
@@ -71,7 +75,7 @@ export function ManufactureScreen() {
           </div>
         </div>
       ) : (
-        <footer className="hud-bottom right">
+        <footer className="hud-bottom right"><button onClick={() => setWalking(true)}>歩いて製造を見守る</button>
           <button onClick={() => { const f = !fast; setFast(f); if (scene.current) scene.current.speed = f ? 2.5 : 1; }} aria-pressed={fast}>早送り{fast ? '：入' : ''}</button>
           <button onClick={() => { scene.current?.skip(); setMs(total); }} data-testid="skip-line">完成まで飛ばす</button>
         </footer>
@@ -79,3 +83,4 @@ export function ManufactureScreen() {
     </div>
   );
 }
+

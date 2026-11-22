@@ -1,126 +1,159 @@
 import { bg, cg, choice, clear, fx, narr, opt, say, title, type Line } from '../../domain/story';
 
-// 第5章「先代の遺言」。青い硝子の指輪の影武者ネフィラが逃げ込み、停戦の約束と沈黙の理由が明かされる。
+// 第5章「腕の王」。古参を素体に、止まらない王を作ってしまう。
 type Scene = readonly Line[];
 
-const ch4Arrival: Scene = [
+const c5d42: Scene = [
   bg('black'),
-  title('第5章', '先代の遺言'),
-  bg('floor'),
-  fx('shake'),
-  narr('十八日目の未明。激しい雨音とともに、工場の扉が叩かれた。'),
-  narr('駆け込んだのは、魔王城の侍女服を泥だらけにした人物だった。その白い薬指には、序章の玉座と回廊であなたが見た【青い硝子の指輪】が光っている。'),
-  say('nephira', '……はあ、はあ……！　やっと着いたわ、第七工場！　あの重い張り子の角を天井から吊るして糸を引くの、どれだけ肩が凝るか分かる！？', undefined, 'angry'),
-  say('lisette', 'あなた……魔王城の侍女？　いいえ、まさか……！', undefined, 'surprised'),
-  say('nephira', '変身族のネフィラよ。三年間、あの暗い帳の奥で『魔王ヴォルグラム』の巨影を演じてきた影武者！', undefined, 'serious'),
-  say('nephira', '序章であんたが帳の裾の指輪と、『折れたはずの左角が影にある矛盾』に気づいてたこと、宰相から聞いてたわよ。さすが記録係ね。', undefined, 'smile'),
-  say('vargas', 'なんだと……！？　じゃあ、玉座の影は本当に張り子と糸のからくりだったのか！', undefined, 'surprised'),
-  say('nephira', '感心してる場合じゃないわ！　四天王の武闘派、炎将ガルドランが玉座の間に踏み込んできて、帳を引き裂かれたの！', undefined, 'angry'),
-  say('nephira', 'ガルドランは宰相府を武力で掌握したわ。『戦わない張り子の王など要らぬ、俺が第七工場で最強の破壊王を造らせる』って、直轄軍を率いてこっちへ向かってる！', undefined, 'angry'),
+  title('第5章', '腕の王'),
+  bg('gate'),
+  narr('四十二日目。納期まで残り五十八日。牙の王は、谷の外で一人、退かずに待っていた。'),
+  say('lisette', '別働の牙獣が、門の横へ回り込みます。ここは速度で止めてください。', undefined, 'serious'),
+  say('mimi', '牙の王の名前、まだ呼んでる。届いてないみたい。', undefined, 'sad'),
 ];
 
-const ch4Truth: Scene = [
+const c5d42w: Scene = [
+  bg('floor'),
+  say('vargas', '本隊はまだ先だ。だが、槌の音が街道に混じり始めた。', undefined, 'serious'),
+];
+
+const c5d44: Scene = [
+  bg('gate'),
+  title('四十四日目', '槌'),
+  narr('納期まで残り五十六日。'),
+  say('arachnea', '攻城の槌よ。装甲を殴っても無駄。貫通か、熔炉の固有技。', undefined, 'serious'),
+];
+
+const c5d44w: Scene = [
+  bg('workshop'),
+  say('vargas', '門のボルトを増やした。炎将が来ても、簡単には渡さねえ。', undefined, 'serious'),
+];
+
+const c5d46: Scene = [
+  bg('floor'),
+  title('四十六日目', '測距'),
+  narr('納期まで残り五十四日。'),
+  say('luka', '記録、更新したわ。あなたたちがよく出す配合、射角に入れてある。遅い子からお願いね。', undefined, 'smile'),
+  say('orphen', '名前を特定してはおらぬ。だが、遅い個体は的じゃ。速度で上回れ。', undefined, 'serious'),
+];
+
+const c5d46w: Scene = [
   bg('lab'),
-  clear,
-  narr('その直後、門の外から旅の青年――勇者セイルが駆け込んできた。裏山からはグラディウスも降り立つ。'),
-  say('seil', 'やっぱり動き出したか。勇者軍の側でも、聖女イリスの十字軍とグレイヴ団長の本隊が、ガルドランの動きを察知して進軍を始めた。', undefined, 'serious'),
-  say('lisette', '待ってください！　グラディウスさん、そして勇者セイル……あなたたちは、三年前の灰冠平原で何があったのか知っているのですね！？', undefined, 'angry'),
-  say('gradius', '…………。', undefined, 'sad'),
-  say('gradius', '……もはや、黙っている時ではあるまい。話そう、リゼット、バルガス。', undefined, 'serious'),
-  cg('broken_horn_memory', '三年前の灰冠平原 ―― 自ら左角を砕き、剣を下ろした勇者と結んだ停戦の盟約'),
-  say('gradius', '三年前、ヴォルグラムは勇者セイルに敗れたのではない。二人は戦場で剣を交えず、停戦の盟約を結んだのだ。', undefined, 'serious'),
-  fx('flash'),
-  say('vargas', '停戦、だと……！？　じゃあ、なんで陛下の左角は折れ、命まで落とされたんだ！', undefined, 'surprised'),
-  say('seil', '……魔物の諸部族は、『魔王』という絶対の力に縛られていた。人間側も『魔王に一矢報いた』という証がなければ戦争を止められなかった。', undefined, 'sad'),
-  say('seil', 'だからヴォルグラムは、自らの手で左の大角をへし折り、俺と相打ちになった形を作って王核を砕いた。一番小さなかけらを、この第七工場に託して。', undefined, 'sad'),
-  cg(null),
-  say('gradius', 'あやつの遺言はこうだ。『血筋でも暴力でもなく、共に働く者たちが、次の世のあり方を選べるようにせよ』とな。'),
-  say('seil', 'だが、両軍の強硬派がその約束を握りつぶし、魔王の死すら隠蔽された。俺も英雄の偶像に祭り上げられて、声を上げられなかった……。'),
-  clear,
-  narr('重い沈黙が落ちた。バルガスが拳を握りしめ、リゼットが唇を噛む。'),
-  say('vargas', 'グラディウス……あんた、それを知りながら三年間、俺たちに黙ってたのかよ！'),
-  say('lisette', '私が魔王城を追われたときも……一言でも教えてくだされば……！'),
-  say('gradius', '……恨め。王の遺言を守るためとはいえ、友を欺いた罪はわしにある。'),
-  narr('信頼していた仲間の沈黙に、工場の空気が再び張り詰めた。だが、あなたたちは第2章で、こういうときにどうするかをすでに決めていた。'),
-  choice(
-    opt('「共同会議を開きましょう。グラディウスさんも、セイルさんも、同じ机についてください」', [
-      say('lisette', '……そうですね。感情で誰かを切り捨てるのは、本社のやり方です。'),
-      say('vargas', '……ちっ、腹は立つが、工場長がそう言うなら座ってやる。'),
-    ], 'ch4_councilHeld'),
-    opt('「黙っていた過去より、これから誰のためにラインを動かすかを決めましょう」', [
-      say('arachnea', 'そうよ。両軍が挟み撃ちにしてくるのに、内輪揉めしてる暇はないわ。'),
-      say('mimi', 'うん！　先代の願いがどうあれ、プルルを守るのは私たちの仕事だもん！'),
-    ]),
-  ),
-  say('orphen', 'ガルドランは『戦のための王』を求め、勇者軍の強硬派は『工場の浄化』を求めておる。'),
-  say('noah', 'ならば、まず両軍の先鋒を退け、私たちの意志で交渉の場を作るしかありません！'),
+  say('vera', '炎将の直轄軍が、本隊の側面に動いています。救援か、接収か。', undefined, 'cold'),
 ];
 
-const ch4Def1Brief: Scene = [
+const c5d50: Scene = [
   bg('gate'),
-  title('十八日目', '炎将の先鋒'),
-  fx('shake'),
-  say('gardran', '開門せよ、第七工場！　四天王が一人、炎将ガルドランである！'),
-  say('gardran', '臆病な宰相に代わって俺が指揮を執る！　先代の角とNo.000を差し出せ、人間どもを焼き払う真の魔王を今すぐ造るのだ！'),
-  say('vargas', 'ガルドラン将軍……あんたの下で迷宮を守ってた頃は、あんたの武勇を誇りに思ってたぜ。'),
-  say('vargas', 'だがな、主君の遺骸と赤ん坊を炉にくべて勝ついくさなんざ、俺は真っ平ごめんだ！　工場長、先鋒の剣士をぶっ飛ばすぞ！'),
+  title('五十日目', '厚み'),
+  narr('納期まで残り五十日。'),
+  say('gradius', '本隊の盾は厚い。割れぬ拳で、時間を潰すな。', undefined, 'serious'),
+  say('lisette', '貫通撃か熔炉巨人です。格納庫の勝数が一番多い子は、温存しても構いません。', undefined, 'normal'),
 ];
 
-const ch4Def1Win: Scene = [
+const c5d50w: Scene = [
+  bg('workshop'),
+  narr('その夜、バルガスは小さな兜を磨かなかった。勝数の札を、一つずつ数えていた。'),
+];
+
+const c5d54: Scene = [
   bg('gate'),
-  say('gardran', 'ぬうっ、工場の職人どもが俺の先鋒を押し返すか！　……だが本隊が着けば、門ごと踏み潰してくれるわ！'),
-  say('vargas', 'いつでも来やがれ！　この門のボルト一本、あんたには渡さねえ！'),
+  title('五十四日目', '先触れ'),
+  narr('納期まで残り四十六日。白い外套の騎士が、十字を掲げて距離を測っていた。'),
+  say('lisette', '教会の先触れです。均整の取れた重装。守勢で受けるか、月晶狼で先に削ってください。', undefined, 'serious'),
 ];
 
-const ch4Def2Brief: Scene = [
-  bg('gate'),
-  title('十九日目', '挟撃の谷'),
-  say('noah', '反対側の尾根から、勇者軍の狙撃部隊と魔導部隊が接近しています！　二連戦になります！'),
-  say('nephira', 'ちょっと、本当に両側から挟まれてるじゃない……！　私、魔王城から逃げてきたのに、ここが一番の激戦区じゃないの！'),
-  say('pluru', 'ぷる……。（プルルはネフィラの裾を引っ張り、自分の黄金の核を見せた。）'),
-  say('nephira', '……あんた、私を怖がらないのね。……いいわ、元・魔王として、あんたの戦いぶりを見届けてあげる！'),
-  say('lisette', 'まずは一戦目、弓兵の部隊です。素早い個体で迎え撃ちましょう！'),
-];
-
-const ch4Def2Win: Scene = [
-  bg('gate'),
-  say('noah', '弓兵部隊を突破！　続けて冷気の魔導師が来ます！　冷気に強い個体を準備してください！'),
-];
-
-const ch4Def3Win: Scene = [
-  bg('floor'),
-  say('mimi', 'ふうーっ、二連戦とも勝ち抜いたよ！　みんな、本当によく頑張ったね！'),
-  say('poyon', 'はい。療養棟のみんなも、格納庫の子たちを励ましていますよ。'),
-];
-
-const ch4Eve: Scene = [
+const c5d54w: Scene = [
   bg('roof'),
-  title('二十日目', '嵐の前夜'),
-  clear,
-  narr('二十日目の夜。谷の両側に、炎将ガルドランの軍勢の篝火と、勇者軍本隊の蒼い魔導灯がずらりと並んでいた。'),
-  narr('そのとき、あなたが持つ宰相府の通信符が、かすかに震えた。'),
-  say('zelva', '……聞こえるか、第三書記室の記録係よ。いや……第七工場長。'),
-  say('zelva', 'わしはガルドランに幽閉された。嘘で国を保とうとしたわしのやり方は、ここで潰えたらしい。'),
-  say('zelva', 'お前を派遣したのは、失敗しても切り捨てやすいからだった。……だが、わしの見立て違いだったな。'),
-  say('zelva', '白紙の『王の設計図』は、お前たちの手元にあるな。ならば最後は、現場の者たちで決めよ。それがヴォルグラムの望みだったのだから。'),
-  clear,
-  narr('通信が途切れた。屋上の階段から、リゼット、バルガス、オルフェン、ポヨン、ミミ、アラクネア、グラディウス、ヴェラ、ノア、そしてプルルが上がってきた。'),
-  say('lisette', '明日の朝、両軍が同時に総攻撃を仕掛けてきます。'),
-  say('orphen', 'そして、この『王の設計図』には、これまでの戦いと約束がすべて刻まれておる。'),
-  say('pluru', '……こうじょう、ちょう。'),
-  narr('プルルが、まっすぐにあなたを見上げた。'),
-  say('pluru', 'あした、ぷるるが、つくる。'),
+  say('gradius', '明日、本隊が着く。牙の王は、まだ外にいる。', undefined, 'sad'),
+];
+
+const c5siege: Scene = [
+  bg('gate'),
+  title('五十五日目', '見切られた'),
+  narr('納期まで残り四十五日。'),
+  fx('shake'),
+  say('luka', '射角、固定！　遅い記録から崩すわよ、第七工場！', undefined, 'smile'),
+  say('lisette', '狙撃手です。速度で上回ってください。牙の王は、支援を拒んだまま前に出ています！', undefined, 'surprised'),
+];
+
+const c5fall: Scene = [
+  bg('gate'),
+  say('mimi', '牙の王が、崩れた！　手当てを、まだ拒んでる！', undefined, 'angry'),
+  say('vargas', '門の手前まで押されてる。このままじゃ、製造フロアだ！', undefined, 'angry'),
+];
+
+const c5rescue: Scene = [
+  bg('gate'),
+  fx('shake'),
+  narr('側面の尾根が割れ、溶岩の肌を持つ巨人が直轄軍を率いて現れた。'),
+  say('gardran', '炎将ガルドランである！　第七工場の門は、今日は渡さぬ！', undefined, 'angry'),
+  narr('敵の射線が崩れ、谷に夜が戻った。炎将は負傷した魔物を、自分の腕で療養棟まで運んだ。'),
+  say('gardran', '死者の名を読む。聞き漏らすな。', undefined, 'serious'),
+  narr('バルガスは兜を膝に置き、元上官と、名前のリストを最後まで聞いた。'),
+];
+
+const c5demand: Scene = [
+  bg('lab'),
+  title('五十六日目', '右腕'),
+  narr('納期まで残り四十四日。炎将は、戦場から持ち帰った右腕を設計台に置いた。'),
+  say('gardran', '牙の王は誇っていた。足りぬのは力だ。この腕で、二体目を作れ。', undefined, 'serious'),
+  say('gardran', '素体は、格納庫で一番勝っている子だ。戦いを知っている体が要る。', undefined, 'serious'),
+  choice(
+    opt('「その子は渡しません」', [
+      say('gardran', 'ならば、スライムの核を使う。プルル、と呼んでいたな。', undefined, 'angry'),
+    ], 'c5_refused'),
+    opt('「自分で選ばせてください」', [
+      say('mimi', '選ばせるって、そんなの……！', undefined, 'angry'),
+    ], 'c5_asked'),
+  ),
+  narr('古参の個体は、誰の結論も待たず、製造ラインへ歩いていった。扉の前で、一度だけ振り返った。'),
+  say('vargas', '……勝て、って教えてやったのは、俺だ。', undefined, 'sad'),
+  say('mimi', '誰も身代わりにしないって、約束したのに。', undefined, 'sad'),
+];
+
+const c5made: Scene = [
+  bg('floor'),
+  title('五十七日目', '名前が消える'),
+  narr('格納庫の枠には、名前の札だけが残った。勝っていた子の配合と技は、素体として固定された。'),
+  say('arachnea', '右腕は埋めた。呼んでも、反応しないわ。', undefined, 'cold'),
+  say('poyon', '札の前で、プルルが聞いています。「かえってくる？」って。', undefined, 'sad'),
+];
+
+const c5watch: Scene = [
+  bg('gate'),
+  title('五十八日目', '止まらない'),
+  narr('納期まで残り四十二日。'),
+  say('gardran', '腕の王に命ずる。敵を倒せ。', undefined, 'angry'),
+  narr('一体が、ルカの射線を砕いた。敵が退いても、追った。止めに入った仲間を、敵とみなした。'),
+  say('lisette', '止めてください、工場長！　8巡持ちこたえても、倒しても、門の前で膝をつかせれば成功です！', undefined, 'surprised'),
+  say('orphen', '守勢と再生じゃ。製造ラインに入った子は、もう出せぬ。残った手で止めよ。', undefined, 'serious'),
+];
+
+const c5chain: Scene = [
+  bg('gate'),
+  narr('腕の王の膝が、門の石に着いた。目は、古参のときの色に戻らなかった。'),
+  say('gardran', '止まらぬなら、鎖をかければよい。戦は、これで終わる。', undefined, 'serious'),
+  say('vargas', 'その子は、俺たちの格納庫の子だ！', undefined, 'angry'),
+  say('gardran', 'お前の部下を死なせた戦を、俺が終わらせる。札は、返さん。', undefined, 'cold'),
+  narr('鎖をかけた腕の王は、炎将の軍とともに北へ去った。'),
+];
+
+const c5noah: Scene = [
+  bg('tank'),
+  title('六十日目', '残された騎士'),
+  cg('white_flag'),
+  narr('納期まで残り四十日。撤退の最後尾に、若い騎士が倒れていた。'),
+  say('poyon', '敵の人です。でも、息があります。療養棟へ運ばせてください。', undefined, 'sad'),
+  say('noah', '……ノア、です。最後尾を、守っていました。', undefined, 'sad'),
+  cg(null),
+  say('mimi', '角の王、「看病して」。', undefined, 'normal'),
+  narr('角の王は、崩れた牙の王のそばを離れなかった。'),
+  say('pluru', '……かえってくる？', undefined, 'sad'),
   bg('black'),
   title('第5章', '完'),
 ];
 
 export const chapter4 = {
-  ch4Arrival,
-  ch4Truth,
-  ch4Def1Brief,
-  ch4Def1Win,
-  ch4Def2Brief,
-  ch4Def2Win,
-  ch4Def3Win,
-  ch4Eve,
+  c5d42, c5d42w, c5d44, c5d44w, c5d46, c5d46w, c5d50, c5d50w, c5d54, c5d54w,
+  c5siege, c5fall, c5rescue, c5demand, c5made, c5watch, c5chain, c5noah,
 } as const;

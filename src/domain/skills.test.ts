@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { steps } from '../data/chapter1';
 import { recipes } from '../data/recipes';
 import { enemies, type EnemyId } from '../data/enemies';
 import { actionSkill, enemySkills, movePools, type Loadout } from '../data/skills';
 import { calculate, type Design } from './design';
-import { diagnose, simulate } from './battle';
+import { diagnose, simulate, type BattleMods } from './battle';
 import { parseSave, toSave } from './save';
 import { makeUnit, unitTitle, veteranBadge } from './manufacture';
 import { useGame, snapshot } from '../state/store';
@@ -136,5 +137,73 @@ describe('種族共通の姿と技構成', () => {
     toggleSound();
     if (soundEnabled()) toggleSound();
     expect(soundEnabled()).toBe(false);
+  });
+});
+
+describe('後半の敵は案内どおりの勝ち筋を持つ', () => {
+  const always = (design: Design, enemy: EnemyId, mods?: BattleMods) =>
+    [1, 7, 42, 99, 256].every(seed => simulate(calculate(design), enemy, seed, mods).outcome === 'win');
+
+  it('硬い敵は貫通か熔炉で、狙撃は速度で、遅い個体は二連射を食らう', () => {
+    expect(always({ first: 'iron', second: 'ember', moves: ['bolt', 'strike'] }, 'golem')).toBe(true);
+    expect(always({ first: 'iron', second: 'ember', moves: ['bolt', 'strike'] }, 'knight')).toBe(true);
+    expect(always({ first: 'glass', second: 'moon', moves: ['pierce', 'rush'] }, 'knight')).toBe(true);
+    expect(always({ first: 'glass', second: 'moon', moves: ['pierce', 'rush'] }, 'sniper')).toBe(true);
+    expect(always({ first: 'seed', second: 'ember', moves: ['rush', 'strike'] }, 'sniper')).toBe(true);
+    const slow = simulate(calculate({ first: 'iron', second: 'spirit', moves: ['guard', 'drain'] }), 'sniper', 42);
+    expect(slow.outcome).toBe('loss');
+    expect(slow.totals.extraShots).toBeGreaterThan(0);
+    expect(simulate(calculate({ first: 'glass', second: 'moon', moves: ['pierce', 'rush'] }), 'sniper', 42).totals.extraShots).toBe(0);
+  });
+
+  it('牙の試練は新しい速い体で勝ち、腕の王と折れ角は8巡耐えれば成功する', () => {
+    expect(always({ first: 'glass', second: 'moon', moves: ['pierce', 'rush'] }, 'alpha')).toBe(true);
+    expect(always({ first: 'seed', second: 'ember', moves: ['rush', 'strike'] }, 'alpha')).toBe(true);
+    expect(always({ first: 'glass', second: 'spirit', moves: ['guard', 'mend'] }, 'crusader')).toBe(true);
+    expect(always({ first: 'glass', second: 'spirit', moves: ['guard', 'mend'] }, 'armking')).toBe(true);
+    expect(always({ first: 'iron', second: 'spirit', moves: ['guard', 'drain'] }, 'armking')).toBe(true);
+    expect(always({ first: 'iron', second: 'ember', moves: ['bolt', 'strike'] }, 'armking')).toBe(false);
+    const knelt = { attackMul: 0.55 } as const;
+    expect(always({ first: 'glass', second: 'spirit', moves: ['guard', 'mend'] }, 'oath', knelt)).toBe(true);
+    expect(always({ first: 'seed', second: 'spirit', moves: ['venom', 'mend'] }, 'oath', knelt)).toBe(true);
+    expect(always({ first: 'iron', second: 'ember', moves: ['bolt', 'strike'] }, 'oath', knelt)).toBe(false);
+    const held = simulate(calculate({ first: 'glass', second: 'spirit', moves: ['guard', 'mend'] }), 'armking', 42);
+    expect(held.outcome).toBe('win');
+    expect(held.enemyHp).toBeGreaterThan(0);
+    expect(diagnose(held).some(f => f.title.includes('耐えきって成功'))).toBe(true);
+  });
+
+  it('牙の試練は新しい個体だけ出し、最多勝は腕の王へ出て終章で戻る', () => {
+    const at = (scene: string) => steps.findIndex(s => s.kind === 'story' && s.scene === scene);
+    const iron: Design = { first: 'iron', second: 'spirit' };
+    useGame.getState().newGame();
+    useGame.setState({
+      progress: { step: at('c4made'), queue: [], seen: [], flags: [], cohort: 1 },
+      roster: [{ ...makeUnit(iron, 1), wins: 2 }],
+      nextId: 2,
+    });
+    useGame.getState().finishScene([]);
+    expect(useGame.getState().progress.cohort).toBe(2);
+    useGame.getState().startBattle(1, 'alpha');
+    expect(useGame.getState().battle).toBeNull();
+
+    useGame.setState({
+      progress: { step: at('c5demand'), queue: [], seen: [], flags: [], cohort: 2 },
+      roster: [
+        { ...makeUnit(iron, 1), wins: 1 },
+        { ...makeUnit({ first: 'iron', second: 'ember' }, 2), wins: 5 },
+      ],
+      nextId: 3,
+    });
+    useGame.getState().finishScene([]);
+    expect(useGame.getState().roster.find(u => u.id === 2)?.away).toBe(true);
+    expect(useGame.getState().roster.find(u => u.id === 1)?.away).toBeUndefined();
+    useGame.getState().startBattle(2, 'beast');
+    expect(useGame.getState().battle).toBeNull();
+
+    useGame.setState({ progress: { ...useGame.getState().progress, step: at('c8command'), queue: [] } });
+    useGame.getState().finishScene([]);
+    expect(useGame.getState().roster.every(u => !u.away)).toBe(true);
+    useGame.getState().newGame();
   });
 });

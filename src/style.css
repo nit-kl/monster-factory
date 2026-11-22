@@ -71,21 +71,11 @@ button.ghost { background: transparent; border-color: transparent; display: flex
 .portrait.speaking.mood-smile img, .portrait.speaking.mood-smile .shade { filter: drop-shadow(0 0 28px rgba(255, 212, 118, 0.68)) brightness(1.05); }
 .portrait.speaking.mood-serious { transform: scale(1.04) translateY(-0.5vh); }
 .portrait.speaking.mood-serious img, .portrait.speaking.mood-serious .shade { filter: drop-shadow(0 0 24px rgba(201, 152, 63, 0.6)) contrast(1.06); }
-.emotion-mark { position: absolute; top: 8vh; right: 12%; width: 72px; height: 72px; pointer-events: none; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.75)); animation: emotionPop 0.42s cubic-bezier(0.18, 1.25, 0.4, 1) both; }
-.portrait.left .emotion-mark { right: 8%; }
-.portrait.right .emotion-mark { left: 8%; right: auto; }
-.portrait-pluru .emotion-mark { top: -4vh; width: 58px; height: 58px; }
-.mood-tag { font-style: normal; font-family: var(--ui); font-size: 0.72rem; padding: 1px 8px; border-radius: 99px; border: 1px solid currentColor; opacity: 0.9; }
-.mood-tag-angry { color: #ff7a6a; }
-.mood-tag-cold { color: #8ad8ff; }
-.mood-tag-sad { color: #a8b8ff; }
-.mood-tag-surprised { color: #ffe066; }
-.mood-tag-smile { color: #8dffb8; }
-.mood-tag-serious { color: var(--gold); }
 /* 一枚絵（イベントスチル／CGカットイン） */
-.event-cg { position: absolute; left: 50%; top: 5.5vh; transform: translateX(-50%); width: min(720px, 76vw); margin: 0; z-index: 3; pointer-events: none; animation: cgEnter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.event-cg { position: absolute; left: 50%; top: 4vh; transform: translateX(-50%); width: min(1040px, 90vw, 98vh); margin: 0; z-index: 3; pointer-events: none; animation: cgEnter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.story.has-cg .portraits { visibility: hidden; }
 .event-cg-frame { border: 3px solid var(--gold); border-radius: 14px; overflow: hidden; background: #0d0716; box-shadow: 0 20px 65px rgba(0, 0, 0, 0.85), 0 0 36px rgba(201, 152, 63, 0.35); }
-.event-cg-frame svg, .event-cg-frame img { display: block; width: 100%; height: auto; max-height: 55vh; object-fit: cover; }
+.event-cg-frame svg, .event-cg-frame img { display: block; width: 100%; height: auto; max-height: 55vh; object-fit: contain; }
 .event-cg figcaption { margin-top: 8px; text-align: center; font-family: var(--serif); font-size: 0.95rem; letter-spacing: 0.14em; color: var(--gold); text-shadow: 0 2px 8px #000; background: rgba(14, 9, 24, 0.85); border: 1px solid var(--line); border-radius: 99px; padding: 3px 18px; width: fit-content; margin-inline: auto; }
 .textbox { position: absolute; left: 50%; bottom: 3.2vh; transform: translateX(-50%); width: min(1040px, 88vw); min-height: 168px; padding: 30px 40px 26px; background: linear-gradient(180deg, rgba(22, 14, 36, 0.9), rgba(12, 7, 20, 0.96)); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 16px 60px rgba(0, 0, 0, 0.6), inset 0 0 0 4px rgba(201, 152, 63, 0.08); cursor: pointer; z-index: 4; }
 .textbox p { font-family: var(--serif); font-size: clamp(1.15rem, 1.5vw, 1.45rem); line-height: 1.9; letter-spacing: 0.04em; }
@@ -266,7 +256,6 @@ button.ghost { background: transparent; border-color: transparent; display: flex
 @keyframes fade { from { opacity: 0; } }
 @keyframes enter { from { opacity: 0; transform: translateY(14px); } }
 @keyframes portraitPulse { 0% { transform: translateY(7px) scale(0.985); } 60% { transform: translateY(-3px) scale(1.01); } 100% { transform: translateY(0) scale(1); } }
-@keyframes emotionPop { 0% { opacity: 0; transform: scale(0.3) rotate(-16deg); } 70% { opacity: 1; transform: scale(1.12) rotate(4deg); } 100% { opacity: 1; transform: scale(1) rotate(0deg); } }
 @keyframes cgEnter { 0% { opacity: 0; transform: translate(-50%, 16px) scale(0.95); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
 .textbox { animation: fade 0.3s both; }
 @keyframes bob { 50% { transform: translateY(4px); } }
@@ -342,3 +331,7 @@ button.ghost { background: transparent; border-color: transparent; display: flex
 .ability-banner small, .ability-banner span { font-size: 0.78rem; letter-spacing: 0.15em; }
 @media (max-width: 1200px) { .synthesis-grid { grid-template-columns: 250px minmax(240px, 1fr) 280px; gap: 10px; padding: 12px; } .ability-charge small { display: none; } }
 @media (max-width: 850px) { .synthesis-grid { grid-template-columns: 220px 1fr; overflow-y: auto; } .recipe-notes { grid-column: 1 / -1; max-height: none; overflow: visible; } .material-shelf { max-height: 580px; } .synthesis-center { min-height: 520px; } .design .bar-top h1 { font-size: 1.1rem; } }
+.walking > :is(.hud-top,.hud-bottom,.hangar,.spec,.toast,.shade-top,.shade-bottom) { display: none; }
+.walk-controls { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); padding: 10px 16px; text-align: center; z-index: 3; }
+.walk-controls small { display: block; }
+.walk-controls nav { display: flex; justify-content: center; flex-wrap: wrap; margin: 5px 0; }

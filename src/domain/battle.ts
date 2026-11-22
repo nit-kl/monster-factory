@@ -11,6 +11,8 @@ export type BattleEvent = {
   special: boolean; absorbed: number;
   skill: string; skillName: string; fx: string; color: string; guard: number;
 };
+export type BattleMods = { attackMul?: number; armorAdd?: number; endure?: number };
+
 export type BattleResult = {
   enemy: EnemyId; seed: number; outcome: 'win' | 'loss' | 'draw'; turns: number; log: BattleEvent[];
   monsterHp: number; enemyHp: number; maxHp: number; enemyFirst: boolean;
@@ -18,8 +20,12 @@ export type BattleResult = {
 };
 
 /** シードを注入する決定的な1対1の自動戦闘。同じ入力からは必ず同じ結果になる。 */
-export function simulate(stats: Stats, enemyId: EnemyId, seed: number): BattleResult {
+export function simulate(base: Stats, enemyId: EnemyId, seed: number, mods: BattleMods = {}): BattleResult {
+  const stats: Stats = mods.attackMul || mods.armorAdd
+    ? { ...base, attack: Math.max(1, Math.round(base.attack * (mods.attackMul ?? 1))), armor: base.armor + (mods.armorAdd ?? 0) }
+    : base;
   const enemy = enemies[enemyId];
+  const endure = mods.endure ?? enemy.endure;
   let rng = seed >>> 0;
   const roll = () => { rng = (Math.imul(rng, 1664525) + 1013904223) >>> 0; return Math.floor((rng / 4294967296) * 5) - 2; };
   let monsterHp = stats.hp, enemyHp: number = enemy.hp, poisoned = false, turn = 0, attacks = 0, enemyActions = 0;
@@ -65,13 +71,14 @@ export function simulate(stats: Stats, enemyId: EnemyId, seed: number): BattleRe
       enemyHp -= poison; monsterHp += heal;
       if (poison || heal) push({ actor: 'effects', poison, heal });
     }
+    if (endure > 0 && monsterHp > 0 && turn >= endure) break;
   }
   const sum = (f: (e: BattleEvent) => number) => log.reduce((n, e) => n + f(e), 0);
   return {
     enemy: enemyId, seed, log, monsterHp, enemyHp, maxHp: stats.hp, enemyFirst,
     turns: log.length ? log[log.length - 1].turn : 0,
     // 相打ち（自分の炎で倒れた場合など）は敗北として扱う。
-    outcome: monsterHp <= 0 ? 'loss' : enemyHp <= 0 ? 'win' : 'draw',
+    outcome: monsterHp <= 0 ? 'loss' : enemyHp <= 0 || (endure > 0 && turn >= endure) ? 'win' : 'draw',
     totals: {
       dealt: sum(e => (e.actor === 'monster' ? e.damage : 0)), taken: sum(e => (e.actor === 'enemy' ? e.damage : 0)),
       selfBurn: sum(e => e.selfBurn), cold: sum(e => e.cold), poison: sum(e => e.poison), heal: sum(e => e.heal),
@@ -90,12 +97,17 @@ export type Finding = { who: 'lisette' | 'vargas' | 'orphen' | 'poyon'; title: s
 /** 戦闘記録から、敗因と次の改良の手がかりを取り出す。 */
 export function diagnose(r: BattleResult): Finding[] {
   const out: Finding[] = [], t = r.totals, lost = r.outcome !== 'win';
-  if (t.extraShots > 0) out.push({ who: 'vargas', title: `追撃を ${t.extraShots} 回受けた`, text: '重い鉄の身体は弓兵に追いつけねえ。古樹の種と竜の血、または星硝子と月光なら速度9以上で追撃を受けねえ。格納庫で疾風撃や守勢打に組み替える手もあるぞ。' });
-  if (t.cold > 0) out.push({ who: 'poyon', title: `冷気の弱点で ${t.cold} の追加損害`, text: '竜の血を使った子は、冷気で余計に傷つきます。亡霊の灯と星硝子なら、冷たい環境にも強い子が生まれますよ。' });
+  if (t.extraShots > 0) {
+    const foe = enemies[r.enemy];
+    const need = foe.rapidFire > 0 ? foe.speed - foe.rapidFire + 1 : foe.speed + 1;
+    out.push({ who: 'vargas', title: `追撃を ${t.extraShots} 回受けた`, text: `速度が${need}未満だと、${foe.name}は1巡に2回撃つ。焔花竜か月晶狼なら先に動ける。格納庫で疾風撃や守勢打に組み替える手もあるぞ。` });
+  }
+  if (t.cold > 0) out.push({ who: 'poyon', title: `冷気の弱点で ${t.cold} の追加ダメージ`, text: '竜の血を使った子は、冷気で余計に傷つきます。亡霊の灯と星ガラスなら、冷たい環境にも強い子が生まれますよ。' });
   if (t.frozenRegen) out.push({ who: 'orphen', title: '再生と回復技が冷気で封じられた', text: '魔法使いの冷気は再生能力だけでなく、再生波や生命吸収の回復も止めてしまう。格納庫で守勢打や攻撃技に組み替えるとよいぞ。' });
   if (lost && t.blocked >= 6) out.push({ who: 'lisette', title: `盾と防御に ${t.blocked} 防がれた`, text: '通常攻撃が相手の盾や守勢に阻まれています。鉄くずと竜の血の一撃や貫通撃を選ぶか、守勢打・生命吸収で3行動目の固有技まで耐えましょう。' });
   if (lost && r.enemyFirst && !t.extraShots) out.push({ who: 'orphen', title: '毎巡、先手を取られた', text: '相手より遅いと先に削られる。格納庫で通常技を守勢打や再生波に組み替えて固有技まで耐えるか、素早い配合を試したまえ。' });
   if (lost && r.enemyHp > 0 && !out.length) out.push({ who: 'orphen', title: `相手の耐久力が ${r.enemyHp} 残った`, text: '格納庫で通常技の組み合わせを見直すか、別の配合を試そう。剣士には鉄くずと竜の血の一撃が有効じゃ。固有技は3回目の攻撃で盾を貫くぞ。' });
+  if (r.outcome === 'win' && r.enemyHp > 0) out.push({ who: 'lisette', title: `${r.turns}巡、耐えきって成功`, text: 'この相手は、倒さなくても指定の巡数を生き延びれば成功です。守勢打と再生で、時間を稼いでください。' });
   if (r.outcome === 'draw') out.push({ who: 'lisette', title: '決着がつかなかった', text: '40巡かけても倒しきれませんでした。攻撃技や侵蝕弾・貫通撃へ組み替えて火力を上げてください。' });
   if (!lost && !out.length) out.push({ who: 'lisette', title: `耐久力を ${r.monsterHp} 残して勝利`, text: '配合と技構成の狙いどおりです。記録しておきます。' });
   return out;

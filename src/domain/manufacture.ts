@@ -1,7 +1,7 @@
 import { calculate, unitName, type Design, type Stats } from './design';
 import type { RecipeId } from '../data/recipes';
 
-export type Unit = { id: number; name: string; nickname?: string; design: Design; stats: Stats; wins: number; losses: number };
+export type Unit = { id: number; name: string; nickname?: string; design: Design; stats: Stats; wins: number; losses: number; away?: boolean };
 export const makeUnit = (design: Design, id: number): Unit => ({ id, name: unitName(design, id), design: { ...design, ...(design.moves ? { moves: [...design.moves] as const } : {}) }, stats: calculate(design), wins: 0, losses: 0 });
 
 export const nicknamePresets: Record<RecipeId, readonly string[]> = {
@@ -26,9 +26,11 @@ export const unitTitle = (u: Pick<Unit, 'name' | 'nickname'>) => (u.nickname ? `
 /** 格納庫に置ける数。あふれた古い個体は療養棟へ移す（破棄しない）。 */
 export const hangarSize = 5;
 export function addToHangar(roster: Unit[], unit: Unit): { roster: Unit[]; moved: number } {
-  const next = [...roster, unit];
-  const moved = Math.max(0, next.length - hangarSize);
-  return { roster: next.slice(moved), moved };
+  const pinned = roster.filter(u => u.away);
+  const open = [...roster.filter(u => !u.away), unit];
+  const room = hangarSize - pinned.length;
+  const moved = Math.max(0, open.length - room);
+  return { roster: [...pinned, ...open.slice(moved)], moved };
 }
 
 /** 製造ラインの段階。演出はこの時間表だけを見て動く。 */

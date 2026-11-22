@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { activeStaffIds, allStaffIds, cast, chapter2StaffIds } from '../data/cast';
+import { activeStaffIds, allStaffIds, arrivedStaffIds, cast, chapter2StaffIds, staffIds } from '../data/cast';
 import { interludes, steps } from '../data/chapter1';
 import { advice, consultationReflection, scenes } from '../data/script';
 import { useGame, snapshot } from '../state/store';
@@ -54,17 +54,19 @@ describe('台本', () => {
     ids.forEach(id => expect(scenes[id], id).toBeDefined());
     expect(steps.at(-1)?.kind).toBe('end');
   });
-  it('第1章の選択フラグが第3章の秘密発覚場面（ch2Secret）の台詞に反映される', () => {
-    const spoken = (flags: string[]) => read(scenes.ch2Secret, flags, () => 0).seen.flatMap(l => (l.t === 'say' ? [l.text] : [])).join('\n');
+  it('第1章の選択フラグが第3章の秘密発覚場面（c3secret）の台詞に反映される', () => {
+    const spoken = (flags: string[]) => read(scenes.c3secret, flags, () => 0).seen.flatMap(l => (l.t === 'say' ? [l.text] : [])).join('\n');
     expect(spoken(['promisedLisette'])).toContain('あの夜、「今は言えない」とおっしゃったのは');
     expect(spoken(['deniedToLisette'])).toContain('「何も知らない」とおっしゃいましたね');
     expect(spoken(['liedToVargas'])).toContain('「お元気そうでした」');
   });
   it('各章の相談メンバー全員に、全敵への助言と進行別メッセージが定義されている', () => {
-    expect(activeStaffIds(5)).toHaveLength(5);
-    expect(activeStaffIds(8)).toHaveLength(5);
-    expect(activeStaffIds(9)).toEqual(chapter2StaffIds);
-    expect(activeStaffIds(14)).toEqual(allStaffIds);
+    expect(activeStaffIds(5)).toEqual(staffIds);
+    expect(activeStaffIds(8)).toEqual(staffIds);
+    expect(activeStaffIds(14)).toEqual(staffIds);
+    expect(activeStaffIds(15)).toEqual(arrivedStaffIds);
+    expect(activeStaffIds(19)).toEqual(chapter2StaffIds);
+    expect(activeStaffIds(60)).toEqual(allStaffIds);
     for (const staff of allStaffIds) {
       for (const day of [1, 3, 6, 9, 14, 21]) expect(consultationReflection(staff, day).length).toBeGreaterThan(0);
       for (const enemy of ['swordsman', 'archer', 'mage'] as const) expect(advice[enemy][staff].length).toBeGreaterThan(0);
@@ -139,11 +141,12 @@ describe('章の進行', () => {
     expect(p.seen).toContain('victory');
     expect(p.seen).toContain('night');
 
-    // 第3章「王の部品」〜第4章「勇者の影」〜第5章「先代の遺言」〜終章「王を設計する」まで連続進行できる
-    for (const expectedChapter of [3, 4, 5, 6] as const) {
+    // 第3章「角の王」から終章まで。百日目に完結する。
+    expect(steps.filter(s => s.kind === 'objective').length).toBeGreaterThanOrEqual(40);
+    for (const expectedChapter of [3, 4, 5, 6, 7, 8] as const) {
       p = playScenes(startNextChapter(p));
       expect(chapterOf(p)).toBe(expectedChapter);
-      for (let guard = 0; guard < 20 && viewOf(p) !== 'end'; guard++) {
+      for (let guard = 0; guard < 40 && viewOf(p) !== 'end'; guard++) {
         const s = stepOf(p);
         if (s.kind !== 'objective') throw Error('目標ではありません');
         p = playScenes(battleFinished(p, s.enemy, 'win'));
@@ -151,11 +154,13 @@ describe('章の進行', () => {
       expect(viewOf(p)).toBe('end');
       expect(chapterOf(p)).toBe(expectedChapter);
     }
-    expect(dayOf(p)).toBe(21);
-    expect(p.seen).toContain('ch2Night');
-    expect(p.seen).toContain('ch3Night');
-    expect(p.seen).toContain('ch4Eve');
-    expect(p.seen).toContain('ch5Epilogue');
+    expect(dayOf(p)).toBe(100);
+    expect(p.seen).toContain('c3night');
+    expect(p.seen).toContain('c4leave');
+    expect(p.seen).toContain('c5chain');
+    expect(p.seen).toContain('c6plea');
+    expect(p.seen).toContain('c7eve');
+    expect(p.seen).toContain('c8epilogue');
   });
   it('場面で選んだ選択肢のフラグを記録する', () => {
     expect(sceneFinished(initialProgress, ['p_sharp']).flags).toEqual(['p_sharp']);

@@ -1,0 +1,16 @@
+﻿.tower-stage{height:100dvh;overflow:auto;display:flex;flex-direction:column;isolation:isolate;color:#fff3df;background:linear-gradient(0deg,#100e18 1%,#20162285 42%,#17142455 70%,#090b16e6),url('/assets/cg/gate_defense.png') center 43%/cover;font-family:inherit}
+.tower-stage header{padding:clamp(12px,3vh,32px) 5vw;text-shadow:0 3px 10px #000;border-bottom:1px solid #e7bf7852;background:linear-gradient(90deg,#100f1ada,transparent)}
+.tower-stage header small,.tower-stage header b{color:#ffd18c;letter-spacing:.18em}
+.tower-stage h1{margin:.2em 0;font:700 clamp(1.55rem,4vw,3.6rem)/1.15 serif}
+.tower-field{position:relative;flex:1;display:flex;align-items:end;justify-content:space-between;min-height:180px;padding:0 4vw 2vh;overflow:hidden}
+.tower-team{width:43%;display:flex;align-items:end;justify-content:center}
+.tower-fighter{width:50%;text-align:center;color:#bbf3ff;filter:drop-shadow(0 4px 12px #021421)}
+.tower-fighter img{display:block;width:100%;height:clamp(90px,29vh,340px);object-fit:contain;filter:drop-shadow(0 0 9px #8cd8ff70)}
+.tower-fighter>div{background:linear-gradient(90deg,transparent,#0c141ee8 16% 84%,transparent);padding:4px;font-size:clamp(.65rem,1.3vw,1rem)}
+.tower-fighter progress{display:block;width:80%;height:6px;margin:4px auto;accent-color:#63e2e8}.foes .tower-fighter{color:#ffbe98}.foes progress{accent-color:#ec785d}.tower-fighter.down{opacity:.3;filter:grayscale(1)}
+.tower-stage footer{display:flex;align-items:center;gap:3vw;padding:12px 5vw 20px;background:linear-gradient(110deg,#0f1c2bf5,#1e1523f5);border-top:1px solid #d6a667;box-shadow:0 -8px 40px #100a15}
+.tower-orders{flex:2}.tower-orders h2{font:700 clamp(1rem,2vw,1.65rem) serif;color:#ffdf9d;margin:.2em 0 .5em}.tower-select,.tower-commands{display:flex;gap:6px;margin:5px 0}.tower-select button[aria-pressed=true]{outline:1px solid #96e8ed}.tower-commands button{flex:1;background:linear-gradient(155deg,#334859,#171a2b);border:1px solid #998765}.tower-commands small{display:block;font-size:.7rem}.tower-log{flex:1;font-size:.82rem;line-height:1.65;color:#ddd1c2;border-left:1px solid #94754f;padding-left:1em}
+.resolving .tower-team:first-child{animation:tower-advance .8s ease}.resolving:after{content:'';position:absolute;top:52%;left:21%;width:59%;height:3px;background:#ffdeb1;box-shadow:0 0 15px 5px #ff843b;transform:rotate(-9deg);animation:tower-shot .85s both}.resolving.cover:after{background:#aaf6ff;box-shadow:0 0 20px 6px #44bfff}
+@keyframes tower-advance{30%{transform:translateX(4vw)}60%{filter:brightness(1.5)}}@keyframes tower-shot{0%,100%{opacity:0;scale:.1 1}45%{opacity:1;scale:1 1}}
+@media(max-width:700px){.tower-stage footer{display:block;padding:9px}.tower-log{margin-top:6px}.tower-field{padding:0 1vw 3px}.tower-team{width:48%}.tower-select button,.tower-commands button{padding:5px}.tower-field img{height:23vh}}
+@media(prefers-reduced-motion:reduce){.resolving .tower-team:first-child,.resolving:after{animation:none}.resolving:after{display:none}}

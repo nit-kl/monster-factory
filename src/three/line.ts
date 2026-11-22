@@ -1,3 +1,4 @@
+import { FactoryWalk } from './factoryWalk';
 import * as THREE from 'three';
 import { recipeFor, type Design } from '../domain/design';
 import { lineAt, totalDuration, type LineStage } from '../domain/manufacture';
@@ -13,6 +14,7 @@ type Arm = { carriage: THREE.Mesh; piston: THREE.Mesh; head: THREE.Group; railX:
 
 export class LineScene {
   readonly stage: Stage;
+  readonly walk: FactoryWalk;
   speed = 1;
   onTick: (ms: number) => void = () => {};
   private ms = 0; private running = false; private idle = true; private snap = true; private lastStage: LineStage | 'idle' = 'idle';
@@ -30,6 +32,10 @@ export class LineScene {
     this.buildHall(); this.buildTank(); this.buildGraft(); this.buildGate(); this.buildPad();
     this.stage.scene.add(this.cart, this.sparks.points, this.motes.points, this.samples);
     this.buildCart();
+    const hall = new THREE.Group();
+    hall.add(...this.stage.scene.children.filter(child => !((child as THREE.Light).isLight)));
+    this.stage.scene.add(hall);
+    this.walk = new FactoryWalk(this.stage, hall);
     this.stage.onFrame = (dt, t, real) => this.frame(dt, t, real);
     this.stage.start();
   }
@@ -42,7 +48,7 @@ export class LineScene {
     this.setMonster(design); this.idle = false; this.running = true; this.ms = 0; this.snap = true; this.lastStage = 'idle';
   }
   skip() { if (this.design) { this.ms = totalDuration(); this.snap = true; } }
-  dispose() { this.monster?.dispose(); this.stage.dispose(); }
+  dispose() { this.walk.enable(false); this.monster?.dispose(); this.stage.dispose(); }
 
   private setMonster(design: Design | null) {
     this.monster?.dispose();
@@ -231,6 +237,7 @@ export class LineScene {
   }
 
   private camera(pos: THREE.Vector3, look: THREE.Vector3, dt: number) {
+    if (this.walk.camera(dt)) return;
     const k = this.snap ? 1 : 1 - Math.exp(-dt * 2.6), cam = this.stage.camera;
     cam.position.lerp(pos, k); this.look.lerp(look, k); cam.lookAt(this.look);
   }
@@ -295,3 +302,4 @@ export class LineScene {
     this.camera(new THREE.Vector3(cartX + Math.sin(a) * distance, 2.7, Math.cos(a) * distance), new THREE.Vector3(cartX, 1.5, 0), real);
   }
 }
+

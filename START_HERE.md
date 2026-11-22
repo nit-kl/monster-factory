@@ -1,5 +1,12 @@
 # How to use this handoff pack with local Codex
 
+## ゲーム内の場面をすぐ確認する
+
+`npm run dev` を起動し、表示された URL に `?debug=1` を付けます（例 `http://localhost:5173/?debug=1`）。
+右上の「開発プレビュー」で会話、戦闘目標、章の結果、工場・格納庫、配合台、製造演出、戦闘演出を選び、「この地点から開始」を押します。
+戦闘演出では戦闘目標と個体を選べます。同じ地点を再確認するには、パネルを開き直して再度開始します。
+開始時にはその時点で使える配合から確認用の個体が用意されます。会話の選択履歴は空です。このモードの進行は保存されません。
+
 1. Create or open your local `monster-factory` repository.
 2. Copy `AGENTS.md` to repository root and the whole `docs/` folder beside it.
 3. Start Codex **inside the repository root** (`codex` in terminal or Codex in VS Code).

@@ -38,48 +38,6 @@ function Shade({ kind, color }: { kind: Exclude<ShadeKind, 'none'>; color: strin
   );
 }
 
-function EmotionOverlay({ mood }: { mood: Mood }) {
-  if (mood === 'normal') return null;
-  return (
-    <svg viewBox="0 0 120 120" className={`emotion-mark emotion-${mood}`} aria-hidden="true">
-      {mood === 'angry' && (
-        <g stroke="#ff5252" strokeWidth="5" fill="none" strokeLinecap="round">
-          <path d="M35 20 Q52 45 25 55" /><path d="M65 20 Q48 45 75 55" />
-          <path d="M25 75 Q52 55 35 90" /><path d="M75 75 Q48 55 65 90" />
-        </g>
-      )}
-      {mood === 'surprised' && (
-        <g fill="#ffe066" stroke="#1c1026" strokeWidth="2">
-          <polygon points="56,12 68,12 64,68 58,68" />
-          <circle cx="61" cy="84" r="7" />
-          <path d="M22 30 L40 45 M98 30 L80 45 M20 65 L38 65 M100 65 L82 65" stroke="#ffe066" strokeWidth="4" strokeLinecap="round" />
-        </g>
-      )}
-      {mood === 'cold' && (
-        <g stroke="#7ad0ff" strokeWidth="3.5" strokeLinecap="round" opacity="0.9">
-          <line x1="30" y1="22" x2="30" y2="78" /><line x1="50" y1="16" x2="50" y2="86" />
-          <line x1="70" y1="20" x2="70" y2="80" /><line x1="90" y1="28" x2="90" y2="70" />
-        </g>
-      )}
-      {mood === 'sad' && (
-        <path d="M62 18 C62 18 38 56 38 74 A24 24 0 0 0 86 74 C86 56 62 18 62 18Z" fill="#7ec8ff" stroke="#182b49" strokeWidth="3" opacity="0.9" />
-      )}
-      {mood === 'smile' && (
-        <g fill="#ffd97a">
-          <path d="M60 14 L67 38 L91 45 L67 52 L60 76 L53 52 L29 45 L53 38Z" />
-          <circle cx="28" cy="24" r="5" /><circle cx="90" cy="76" r="6" />
-        </g>
-      )}
-      {mood === 'serious' && (
-        <g stroke="#f0d48a" strokeWidth="3" fill="none" opacity="0.85">
-          <circle cx="60" cy="60" r="34" strokeDasharray="10 8" />
-          <circle cx="60" cy="60" r="6" fill="#f0d48a" />
-        </g>
-      )}
-    </svg>
-  );
-}
-
 export function Portrait({ id, mood = 'normal', pulseKey = 0, className = '' }: { id: CastId; mood?: Mood; pulseKey?: number; className?: string }) {
   const c = cast[id];
   if (c.shade === 'none') return null;
@@ -87,7 +45,6 @@ export function Portrait({ id, mood = 'normal', pulseKey = 0, className = '' }: 
     <div className={`portrait ${c.wide ? 'wide' : ''} portrait-${id} mood-${mood} ${className}`}>
       <div key={pulseKey} className="portrait-inner">
         {c.image ? <img src={c.image} alt={c.name} draggable={false} /> : <Shade kind={c.shade ?? 'figure'} color={c.color} />}
-        <EmotionOverlay mood={mood} />
       </div>
     </div>
   );

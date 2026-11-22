@@ -3,7 +3,8 @@ export type CastId =
   | 'lisette' | 'vargas' | 'orphen' | 'poyon' | 'pluru'
   | 'vera' | 'mimi' | 'arachnea' | 'gradius' | 'noah'
   | 'zelva' | 'maou' | 'maid' | 'captain'
-  | 'nephira' | 'seil' | 'luka' | 'grave' | 'gardran';
+  | 'nephira' | 'seil' | 'luka' | 'grave' | 'gardran'
+  | 'rouga' | 'iris' | 'eleanor';
 export type BgId = 'black' | 'throne' | 'study' | 'corridor' | 'road' | 'exterior' | 'floor' | 'lab' | 'roof' | 'workshop' | 'tank' | 'gate';
 export type Fx = 'shake' | 'flash' | 'glow';
 export type Mood = 'normal' | 'angry' | 'cold' | 'sad' | 'surprised' | 'smile' | 'serious';
@@ -17,7 +18,12 @@ export type CgId =
   | 'broken_seal'
   | 'white_flag'
   | 'broken_horn_memory'
-  | 'pluru_crown';
+  | 'pluru_crown'
+  | 'pluru_encounter'
+  | 'quiet_repair'
+  | 'last_vigil'
+  | 'empty_design'
+  | 'factory_morning';
 export type Option = { label: string; flag?: string; then: readonly Line[] };
 export type Line =
   | { t: 'say'; who: CastId; text: string; as?: string; mood?: Mood }

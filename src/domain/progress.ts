@@ -1,9 +1,10 @@
 import { interludes, steps, type ChapterNum, type Step } from '../data/chapter1';
+export type { ChapterNum };
 import type { EnemyId } from '../data/enemies';
 
 /** 章の進行状況。すべて保存対象。 */
-export type Progress = { step: number; queue: string[]; seen: string[]; flags: string[] };
-export const initialProgress: Progress = { step: 0, queue: [], seen: [], flags: [] };
+export type Progress = { step: number; queue: string[]; seen: string[]; flags: string[]; cohort?: number };
+export const initialProgress: Progress = { step: 0, queue: [], seen: [], flags: [], cohort: 1 };
 
 export const stepOf = (p: Progress): Step => steps[Math.min(p.step, steps.length - 1)];
 export const dayOf = (p: Progress) => { const s = stepOf(p); return s.kind === 'end' ? (s.day ?? 7) : s.day; };
@@ -12,10 +13,12 @@ export const chapterTitle = (ch: ChapterNum): string => {
   switch (ch) {
     case 1: return '第1章　よそ者の工場長';
     case 2: return '第2章　孤立無援の防衛戦';
-    case 3: return '第3章　王の部品';
-    case 4: return '第4章　勇者の影';
-    case 5: return '第5章　先代の遺言';
-    case 6: return '終章　王を設計する';
+    case 3: return '第3章　角の王';
+    case 4: return '第4章　牙の王';
+    case 5: return '第5章　腕の王';
+    case 6: return '第6章　折れ角の王';
+    case 7: return '第7章　目の王';
+    case 8: return '終章　王を設計する';
   }
 };
 export function startNextChapter(p: Progress): Progress {
@@ -60,9 +63,12 @@ export function battleFinished(p: Progress, enemy: EnemyId, outcome: 'win' | 'lo
   const s = stepOf(p);
   if (s.kind !== 'objective' || s.enemy !== enemy) return p; // 練習試合は進行に影響しない
   if (outcome === 'win') return { ...p, step: p.step + 1 };
-  const add = enemy === 'swordsman' && !s.raid ? ['lostFirst', ...(selfBurned ? ['seenSelfBurn'] : [])] : [];
+  const chapter = s.chapter ?? 1;
+  const earlyDrill = chapter === 1 && !s.raid;
+  const add = enemy === 'swordsman' && earlyDrill ? ['lostFirst', ...(selfBurned ? ['seenSelfBurn'] : [])] : [];
   const flags = [...new Set([...p.flags, ...add])];
-  return once({ ...p, flags }, s.raid ? interludes.raidLoss : interludes.loss[enemy]);
+  const scene = earlyDrill ? interludes.loss[enemy] : chapter === 2 ? interludes.raidLoss : interludes.setback;
+  return once({ ...p, flags }, scene);
 }
 
 export type BlueprintTrait = { id: string; title: string; note: string };
@@ -91,20 +97,23 @@ export function blueprintTraits(p: Progress, discoveredCount: number, manufactur
   if (manufacturedCount >= 3) {
     traits.push({ id: 'mercy', title: '慈愛のぬくもり', note: '生まれたばかりの命を搬出口で待ち、帰還する場所を整えた。' });
   }
-  if (p.seen.includes('ch2Audit3Win') || p.seen.includes('ch2Victory') || p.flags.includes('ch2_sharedBlueprint') || p.flags.includes('ch2_refusedVessel')) {
-    traits.push({ id: 'covenant', title: '合意の掟', note: '密命と設計図を全員に開示し、共同会議なしに王の器を作らないと定めた。' });
+  if (p.seen.includes('ch2Audit3Win') || p.seen.includes('ch2Victory') || p.seen.includes('c3night') || p.flags.includes('ch2_sharedBlueprint') || p.flags.includes('ch2_refusedVessel') || p.flags.includes('c3_share') || p.flags.includes('c3_refuseCore')) {
+    traits.push({ id: 'covenant', title: '合意の掟', note: 'プルルの核には触らず、右角だけで王の形を試すと、全員の前で決めた。' });
   }
-  if (p.seen.includes('ch2Victory') || p.flags.includes('promisedMimi') || p.flags.includes('alliedArtisans')) {
-    traits.push({ id: 'kinship', title: '己の言葉の芽生え', note: '王の部品で上書きせず、プルルが自らの心で言葉を紡ぐ場所を守った。' });
+  if (p.seen.includes('ch2Victory') || p.seen.includes('c4leave') || p.flags.includes('promisedMimi') || p.flags.includes('alliedArtisans')) {
+    traits.push({ id: 'kinship', title: '己の言葉の芽生え', note: '従うだけの王と、退けない王を工場に置き、プルルが自分の言葉で名前を呼ぶ場所を守った。' });
   }
-  if (p.seen.includes('ch3Victory') || p.flags.includes('welcomedNoah') || p.flags.includes('ch3_testedNoah')) {
-    traits.push({ id: 'bridge', title: '境界を越える対話', note: '元騎士ノアを十人目の仲間として迎え、敵の設計者ルカにも名前で呼ばれる命の力を示した。' });
+  if (p.seen.includes('c5chain')) {
+    traits.push({ id: 'cost', title: '止めた最高傑作', note: '一番勝たせてきた子を素体にした腕の王を、残った手持ちで門の前に跪かせた。' });
   }
-  if (p.seen.includes('ch4Eve') || p.seen.includes('ch4Def3Win') || p.flags.includes('ch4_councilHeld')) {
-    traits.push({ id: 'identity', title: '先代の遺言の継承', note: '影武者ネフィラと勇者セイルから三年前の停戦の真実を聞き、現場の合議で未来を選ぶと決めた。' });
+  if (p.seen.includes('ch3Victory') || p.seen.includes('c6luka') || p.flags.includes('welcomedNoah') || p.flags.includes('ch3_testedNoah')) {
+    traits.push({ id: 'bridge', title: '境界を越える対話', note: '人間の側が作った折れ角の王と、その設計者を、門の内側で受けた。' });
   }
-  if (p.seen.includes('ch5Epilogue') || p.flags.includes('ch5_yieldedSeat')) {
-    traits.push({ id: 'peace', title: '戦わない王の王命', note: '設計台の席をプルルに譲り、「たたかうのを、やめて」という一度きりの王命で停戦を結んだ。' });
+  if (p.seen.includes('ch4Eve') || p.seen.includes('c7eve') || p.flags.includes('ch4_councilHeld')) {
+    traits.push({ id: 'identity', title: '先代の遺言の継承', note: '左目に残った先代と数時間だけ再会し、王に戻ることを断る言葉を記録した。' });
+  }
+  if (p.seen.includes('ch5Epilogue') || p.seen.includes('c8epilogue') || p.flags.includes('ch5_yieldedSeat') || p.flags.includes('c8_yielded')) {
+    traits.push({ id: 'peace', title: '戦わない王の王命', note: '設計台の席をプルルに譲り、「たたかうのを、やめて」という一度きりの王命で百日目を閉じた。' });
   }
   return traits;
 }

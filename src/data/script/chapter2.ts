@@ -1,272 +1,252 @@
 import { bg, cg, choice, clear, fx, narr, opt, say, title, when, type Line } from '../../domain/story';
 
-// 第3章「王の部品」。第2章でようやく認められた直後に密命が暴かれ、共同会議の規約で信頼を再構築する。
+// 第3章「角の王」。右角だけで従う王を作り、門を開けて失敗する。
 type Scene = readonly Line[];
 
-const ch2Arrival: Scene = [
-  bg('black'),
-  title('第3章', '王の部品'),
-  bg('exterior'),
-  narr('九日目の朝。先遣部隊の包囲を退けたばかりの谷の門に、本社直轄の黒塗りの荷馬車が到着した。'),
-  say('mimi', 'ただいまーっ！　ポヨンさん、バルガスのおじちゃん、みんな無事だった！？', undefined, 'smile'),
-  narr('荷台から最初に飛び降りてきたのは、大きな尻尾を揺らす狐の獣人だった。'),
-  say('poyon', 'ミミさん！　おかえりなさい、無事でよかったです……！', undefined, 'smile'),
-  say('arachnea', '……朝から騒がないでちょうだい。馬車の揺れで、せっかく調整した計測針が狂ったわ。', undefined, 'cold'),
-  narr('続いて、八本の蜘蛛の脚を器用に折りたたんで、多眼の技師が降り立った。'),
-  say('vargas', 'ミミ、アラクネア！　本社に呼び出されたきりだったから、引き抜かれたかと思ってたぜ。', undefined, 'smile'),
-  say('mimi', 'へへっ、第七工場の格納庫をほったらかしにできるわけないよ！　……あ、あなたが新しい工場長？', undefined, 'smile'),
-  say('arachnea', 'ふうん。昨日の防衛戦で勇者軍の先遣隊を追い返したって聞いたわ。整備技師のアラクネアよ、お手並みは追々見せてもらうわね。', undefined, 'normal'),
-  clear,
-  narr('その後ろから、銀白の髪と黒い角を持つ魔族が、鉛で封印された鉄箱を運ばせて歩み出た。'),
-  say('vera', '第七魔物製造工場の防衛および稼働状況、確認しました。本社監察官、ヴェラ・アークライトです。', undefined, 'serious'),
-  say('lisette', '副工場長のリゼットです。通達にあった「特別資材」とは、その箱ですか。', undefined, 'serious'),
-  say('vera', 'ええ。受領印は工場長から直接いただきます。……全員、研究フロアへ集まりなさい。', undefined, 'cold'),
+const setback: Scene = [
+  bg('floor'),
+  say('lisette', '門はまだ持っています。個体を戻して、配合と技構成を見直してください。', undefined, 'serious'),
+  say('vargas', '一回で決まる戦なんてねえ。傷を見て、もう一度出せ。', undefined, 'angry'),
+  say('orphen', '負け筋は記録に残っておる。一つ潰してから出すのじゃ。', undefined, 'serious'),
 ];
 
-const ch2Secret: Scene = [
+const c3d09: Scene = [
+  bg('black'),
+  title('第3章', '角の王'),
+  bg('gate'),
+  narr('九日目。納期まで残り九十一日。先遣隊は退いたが、門の鎖はまだ歪んだままだった。'),
+  say('lisette', '監察官の到着は、六日後と通達にあります。それまでに、街道を塞いでください。', undefined, 'serious'),
+  say('vargas', '宰相は救援を出さなかった。なら、この門は俺たちのボルトで持たせる。', undefined, 'angry'),
+  say('orphen', '斥候の剣士が、修理の音を嗅ぎつけておる。盾は軽い攻撃を弾くぞ。', undefined, 'serious'),
+];
+
+const c3d09w: Scene = [
+  bg('workshop'),
+  cg('quiet_repair'),
+  say('vargas', 'よし、前衛は退いた。鎖の歪みは今夜中に直す。', undefined, 'smile'),
+  say('pluru', 'こうじょう、ちょう。', undefined, 'smile'),
+  narr('プルルは、油のついたあなたの手袋を真似して、小さな布をボルトに押し当てた。'),
+  cg(null),
+];
+
+const c3d11: Scene = [
+  bg('floor'),
+  title('十一日目', '尾根'),
+  narr('納期まで残り八十九日。'),
+  say('lisette', '尾根に弓が見えます。遅い個体は、一日で蜂の巣です。', undefined, 'serious'),
+  say('poyon', '焔花竜と月晶狼なら、矢より先に届きますよ。', undefined, 'normal'),
+];
+
+const c3d11w: Scene = [
+  bg('roof'),
+  say('lisette', '……工場長。通信符が、あなたの鞄の中で光っていました。', undefined, 'cold'),
+  say('zelva', '進捗を書け。王の器は、まだ白紙か。残り八十九日だ。', undefined, 'cold'),
+  choice(
+    opt('「門を守っています。器は、まだ作れません」', [
+      say('zelva', '門は手段だ。わしが買っているのは、王だ。', undefined, 'serious'),
+    ]),
+    opt('「現場の記録は、毎日残しています」', [
+      say('zelva', '記録係の癖が出たな。数字を送れ。感想は要らぬ。', undefined, 'cold'),
+    ]),
+  ),
+];
+
+const c3d13: Scene = [
+  bg('floor'),
+  title('十三日目', '冷気'),
+  narr('納期まで残り八十七日。谷の奥に、冷たい霧が降りていた。'),
+  say('orphen', '冷気じゃ。竜の血の子を出すな。星ガラスで受けよ。', undefined, 'serious'),
+  say('vargas', '監察官は、あさってだ。この霧の向こうに、黒塗りの馬車が見える。', undefined, 'serious'),
+];
+
+const c3d13w: Scene = [
+  bg('exterior'),
+  narr('霧の中で、あなたは右角という言葉を、まだ誰にも説明できずにいた。'),
+  say('poyon', '工場長さん。プルルが、あなたの鞄の前で眠ろうとしません。', undefined, 'sad'),
+];
+
+const c3arrive: Scene = [
+  bg('black'),
+  title('十五日目', '右角'),
+  bg('exterior'),
+  narr('納期まで残り八十五日。黒塗りの荷馬車が、直したばかりの門をくぐった。'),
+  say('mimi', 'ただいまーっ！　格納庫、ほったらかしじゃなかった？', undefined, 'smile'),
+  say('arachnea', '計測針が狂ったわ。朝から騒がないで。', undefined, 'cold'),
+  say('vargas', 'ミミ、アラクネア！　本社に食われたかと思ったぜ。', undefined, 'smile'),
+  say('vera', '第七魔物製造工場の稼働、確認しました。監察官、ヴェラ・アークライトです。', undefined, 'serious'),
+  say('vera', '特別資材を研究フロアへ。開封は、工場長の前で行います。', undefined, 'cold'),
+];
+
+const c3secret: Scene = [
   bg('lab'),
   clear,
-  narr('研究フロアの設計台の上に、鉛の封印が施された鉄箱が置かれた。'),
-  say('vera', 'これより、宰相ゼルヴァ閣下からの第二命令を伝達します。', undefined, 'serious'),
-  say('vera', '……この箱に収められているのは、先代魔王ヴォルグラム様の遺骸より回収された「左角の欠片」です。', undefined, 'serious'),
+  narr('鉛の箱が開くと、先代の右角が、折れていない側のまま光っていた。'),
+  cg('broken_seal'),
   fx('flash'),
-  cg('broken_seal', '鉛の箱から現れた先代魔王の折れた左角と、暴かれた密命'),
-  say('lisette', '……え？', undefined, 'surprised'),
-  say('vargas', 'おい、今なんつった。……遺骸、だと？', undefined, 'surprised'),
-  say('vera', '先代魔王は三年前の灰冠平原にて崩御されました。現在、玉座の帳の奥におわすのは影武者です。', undefined, 'cold'),
-  say('vera', 'そして、この第七工場に課された本来の任務は――王の部品を器に接合し、「新しい魔王」を一体、製造すること。', undefined, 'serious'),
-  say('vera', '工場長。あなたは着任の時点で、この極秘命令を受け取っていますね。', undefined, 'cold'),
+  say('vera', '先代魔王ヴォルグラムは、三年前に崩御されています。玉座の帳の奥は、影武者です。', undefined, 'cold'),
+  say('vera', 'この右角は、威光の部位です。百日目の大集会までに、これで王の形を見せていただきます。', undefined, 'serious'),
+  say('vera', '三日以内に試作がなければ、No.000 を本社の器として回収します。', undefined, 'cold'),
+  say('lisette', '……回収、ですか。', undefined, 'surprised'),
   cg(null),
-  clear,
-  narr('室内の温度が凍りついたように下がった。昨日、ようやくあなたを認めて笑顔を見せたばかりのリゼットが、震える声であなたを振り返った。'),
   when('promisedLisette', [
-    say('lisette', '……あの夜、「今は言えない」とおっしゃったのは、このことだったんですか。', undefined, 'sad'),
-    say('lisette', '昨日、ようやくあなたを私たちの工場長だと信じられたのに……最初から、陛下が亡くなっていたことも、ここを王の製造所にする命令も隠していたのですね！', undefined, 'angry'),
+    say('lisette', 'あの夜、「今は言えない」とおっしゃったのは、このことだったんですか。', undefined, 'sad'),
   ], [
     when('deniedToLisette', [
       say('lisette', '……「何も知らない」とおっしゃいましたね。', undefined, 'cold'),
-      say('lisette', '昨日あなたに頭を下げて工場長室をお渡しした自分が情けないです！　私が陛下の安否を尋ねたとき、どんな気持ちで嘘をつかれたのですか！', undefined, 'angry'),
     ], [
-      say('lisette', '……ずっと、その鞄の中にあったのですね。私たちがようやくあなたを信じたのに、一番重大な真実を隠していたのですね！', undefined, 'angry'),
+      say('lisette', '最初から、その鞄の中にあったのですね。', undefined, 'angry'),
     ]),
   ]),
   when('liedToVargas', [
-    say('vargas', '「お元気そうでした」……よくもまあ、初日に俺の目を見て言えたもんだな！', undefined, 'angry'),
+    say('vargas', '「お元気そうでした」……よくも、俺の目を見て言えたな。', undefined, 'angry'),
   ]),
-  say('vargas', '昨日、俺はあんたに新品の革手袋を渡したよな！　『本社の人間と呼んで悪かった』って頭まで下げた！', undefined, 'angry'),
-  say('vargas', 'それなのに、裏じゃ俺たちの主君を「部品」にして偽物の王を造る命令を抱えてたのかよ！！', undefined, 'angry'),
-  say('orphen', '……だから昨夜、プルルの核があの声で鳴ったのか。', undefined, 'serious'),
-  say('vera', '気づいていましたか、オルフェン主任。そう、試作体 No.000 の核こそ、先代が遺した「王核のかけら」です。', undefined, 'serious'),
-  say('vera', '本社の計画では、No.000 を素体として王角を接合し、新たな王の器とします。王の意識が定着すれば、試作体としての人格は消えます。', undefined, 'cold'),
-  say('mimi', 'ちょっと待ってよ！　そんなことしたら、今のプルルはどうなるの！？', undefined, 'angry'),
-  say('poyon', 'いけません……！　この子は部品じゃありません、ここで生まれた、私たちの子どもです……！', undefined, 'sad'),
-  narr('ポヨンがプルルを体の奥へ抱き込んだ。ミミがその前に立ちはだかる。'),
-  say('mimi', '絶対に渡さないからね！　本社だろうが工場長だろうが、プルルを壊すなら私が相手だよ！', undefined, 'angry'),
-  clear,
-  narr('全員の激しい怒りと失望の視線が、あなたに突き刺さっていた。'),
-  narr('あなたは弁解する代わりに、鞄から王家の封蝋が押されたままの書状と、白紙の『王の設計図』を取り出し、全員の前の机に広げた。'),
+  say('vargas', '主君の角を、部品にして運んできやがった。', undefined, 'angry'),
+  say('orphen', '……だからプルルの核が、あの声で鳴ったのか。', undefined, 'serious'),
+  say('vera', 'No.000 の核は、先代が遺した王核のかけらです。角は威、核は意志。本社の仕様では、両方を一つの器に接合します。', undefined, 'serious'),
+  say('mimi', 'ちょっと待って！　そしたら今のプルルは、どこへ行くの！', undefined, 'angry'),
+  say('poyon', 'この子は部品じゃありません。', undefined, 'sad'),
+  say('vera', '仕様書は宰相閣下の直筆です。拒めば、別の監督官が来ます。', undefined, 'cold'),
+];
+
+const c3council: Scene = [
+  bg('lab'),
+  title('十五日目', '夜の会議'),
+  say('orphen', '核に触らず、角だけで器を作ることはできる。威はある。心は、無い。', undefined, 'serious'),
+  say('vargas', '主君の角を削る仕事は、職人の仕事じゃねえ。', undefined, 'angry'),
+  say('mimi', '身代わりを作るのも嫌。作るなら、名前を付けて。失敗しても、廃棄炉は禁止。', undefined, 'serious'),
+  say('arachnea', '接合できるのは私だけよ。拒めば、軍の魔導師が乱暴にやるわ。', undefined, 'serious'),
   choice(
-    opt('「黙っていたのは私の罪です。けれど、プルルを器には絶対にさせません」', [
-      say('lisette', '……今さら何を言っても、傷ついた信頼は戻りません。ですが……本社の命令に背く覚悟がおありなのですか。', undefined, 'serious'),
-    ], 'ch2_refusedVessel'),
-    opt('「密命も設計図も、すべてここにさらけ出します。私一人では決めません」', [
-      say('orphen', '……白紙の設計図を、現場の机にすべて開示したか。', undefined, 'surprised'),
-    ], 'ch2_sharedBlueprint'),
+    opt('「プルルは渡さない。右角だけで、王の形を見せます」', [
+      say('lisette', '……反対は、議事録に残します。実行は、その条件で。', undefined, 'serious'),
+    ], 'c3_refuseCore'),
+    opt('「設計図を机に出します。核には、誰も触らない」', [
+      say('orphen', '白紙を、現場の机に置いたか。', undefined, 'surprised'),
+      say('mimi', 'その言葉、お尻に噛みつくからね。', undefined, 'angry'),
+    ], 'c3_share'),
   ),
-  say('vera', '監督官。勝手な判断は許されません。あなたが拒めば、別の監督官が送られるだけです。', undefined, 'cold'),
-  say('arachnea', '……待ちなさいよ、監察官。', undefined, 'serious'),
-  narr('それまで黙って箱を睨んでいたアラクネアが、細い指で鉄箱の縁を叩いた。'),
-  say('arachnea', '王の部品を接合できる精度の形成輪を動かせるのは、魔王軍広しといえど私だけよ。', undefined, 'serious'),
-  say('arachnea', 'そして、この工場のラインをどう動かすかは、現場の会議で決める。……それがここのやり方でしょう、副工場長？', undefined, 'normal'),
-  say('lisette', '……はい。', undefined, 'serious'),
-  say('lisette', '工場長。昨日芽生えたばかりの信頼を、あなた自身が砕いたことは事実です。すぐには許せません。', undefined, 'cold'),
-  say('lisette', 'ですが、昨日の包囲戦であなたが体を張ってあの子たちを守ったことも、また事実です。', undefined, 'serious'),
-  say('lisette', 'ゆえに、鉄の規約を定めます。「全員の共同会議を経ずに、王の器は一切製造しない」。……二度と隠し事はしないと誓えますね。', undefined, 'serious'),
-  say('vargas', '……手袋は取り上げねえでおいてやる。だが、もう一回でも俺たちに嘘をついてみろ。今度こそ終わりだぞ。', undefined, 'angry'),
-  say('vera', '……いいでしょう。私に与えられた査察期間は四日間。', undefined, 'cold'),
-  say('vera', 'その間に、この工場が「本社の介入なしに外敵を退け、高度な配合を維持できる」ことを三つの監察査定で証明しなさい。', undefined, 'serious'),
-  say('vera', '一つでも落とせば工場は本社直轄とし、No.000 は強制回収します。まずは明日、第一の査定演習を行います。', undefined, 'cold'),
+  say('vera', '条件は聞きました。明日、査定を始めます。角の王が戦力になるか、数字で示しなさい。', undefined, 'cold'),
 ];
 
-const ch2Audit1Brief: Scene = [
+const c3made: Scene = [
   bg('floor'),
-  title('十日目', '第一査定と飼育係'),
-  say('vera', '第一の査定を始めます。相手は重装の剣士。盾による軽減と破城斬を備えています。'),
-  say('mimi', '工場長！　私、本社のことはまだ怒ってるからね。……でも、あの子たちが傷つくのはもっと嫌なの！'),
-  say('mimi', '格納庫にいる子たちには、戦ったぶんだけ誇りがあるし、名前を呼んであげればもっと頑張れるんだよ！'),
-  say('arachnea', '技構成も見直しなさい。格納庫で通常技を二つ選べるように整備しておいたわ。守勢打や生命吸収を入れれば、重装相手でも崩れないはずよ。'),
-  say('lisette', '準備ができたら、格納庫から個体を選んで査定演習に出してください。'),
+  title('十六日目', '角の王'),
+  narr('納期まで残り八十四日。配合台の端に、右角を置く枠が一つ増えていた。'),
+  say('arachnea', '材料は二つ、あなたが選びなさい。角は、私が接合する。', undefined, 'serious'),
+  say('poyon', '生まれた子に布を差し出すと……動きません。', undefined, 'sad'),
+  say('mimi', '「立って」って言ってごらん。', undefined, 'normal'),
+  narr('あなたがそう言うと、角の王は初めて立った。名前は、ミミがあなたに尋ね、あなたが付けた。'),
+  say('pluru', 'あそんで！', undefined, 'smile'),
+  narr('角の王は、プルルの言葉で手足を動かした。'),
+  say('mimi', '……それは、遊んでるんじゃないよ。', undefined, 'sad'),
 ];
 
-const ch2Audit1Win: Scene = [
+const c3a1: Scene = [
   bg('floor'),
-  say('vera', '……第一査定、基準クリアを確認しました。個体の損耗率も許容範囲内です。'),
-  say('mimi', 'よしよし、えらかったね！　ほら、ポヨンさんと一緒に冷たいお水で冷やそうね！'),
+  title('十七日目', '査定'),
+  say('vera', '第一査定。剣士です。角の王を後方に置きなさい。味方の装甲が厚くなります。', undefined, 'serious'),
+  say('lisette', '厚くなっても、盾そのものは割れません。熔炉巨人か貫通撃を。', undefined, 'serious'),
+];
+
+const c3a1w: Scene = [
+  bg('floor'),
+  say('vera', '装甲の増加、確認しました。損耗は許容範囲です。', undefined, 'cold'),
+  say('mimi', 'えらかったね。……角の王には、まだ名前で呼ぶと、びくってする。', undefined, 'smile'),
+];
+
+const c3a2: Scene = [
+  bg('floor'),
+  title('十八日目', '矢'),
+  say('vera', '第二査定は弓です。加護があっても、遅ければ二連射です。', undefined, 'serious'),
+  say('arachnea', '足の遅い子を、角の後ろに隠すのはやめなさい。', undefined, 'cold'),
+];
+
+const c3a2w: Scene = [
   bg('tank'),
-  clear,
-  narr('その夜。培養槽の前で、ミミとポヨンが帰還した個体の手入れをしていた。あなたがタオルを持って近づくと、ミミがちらりとこちらを見た。'),
-  say('mimi', '……ねえ、工場長。初日に生まれた子、あなたが搬出口で待っててくれたって、ポヨンさんから聞いたよ。'),
-  say('poyon', 'はい。まだ足元が震えているあの子を、乾いた布で一緒に支えてくださったんです。'),
-  say('mimi', '本社の人って、魔物を数字でしか見ない人ばっかりだった。だから私、絶対にあんたのことも嫌いになると思ってたのに。'),
-  say('mimi', '……約束して。どの一体も、プルルも、誰かの身代わりなんかにしないって。'),
-  choice(
-    opt('「約束します。どの一体も、ここの仲間です」', [
-      say('mimi', '……うん！　その言葉、忘れたらお尻に噛みつくからね！'),
-    ], 'promisedMimi'),
-    opt('「言葉だけでなく、これからの記録と仕事で示します」', [
-      say('mimi', 'そっか……そうだね、リゼットさんみたいなこと言うんだね。なら、ちゃんと見てるよ！'),
-    ]),
-  ),
-  say('pluru', 'ぷるっ！'),
+  narr('その夜、角の王はプルルの「あそんで」で踊り、言葉が終わると止まった。'),
+  say('orphen', '命令が途切れると、意志も途切れる。これは王ではない。角が歩いておるだけじゃ。', undefined, 'serious'),
 ];
 
-const ch2Audit2Brief: Scene = [
-  bg('floor'),
-  title('十一日目', '第二査定と蜘蛛の技師'),
-  say('vera', '第二の査定は弓兵です。速度で劣れば二連射を受け、退き射ちでこちらの攻撃もいなされます。'),
-  say('arachnea', '昨日、あなたが書いた損害報告書を読んだわ。形成輪の負荷まで正確に拾っていたわね。'),
-  say('arachnea', '……私の腕は、生き物を壊すためじゃなくて、ちゃんと自分の足で立てる子を作るためにあるの。'),
-  say('arachnea', '古樹の種と竜の血、あるいは星硝子と月光の雫。素早い配合に疾風撃を組み合わせれば、矢の雨も振り切れるわ。やってみなさい。'),
-];
-
-const ch2Audit2Win: Scene = [
-  bg('floor'),
-  say('arachnea', 'ほらね、計算どおりよ。接合面の歪みもゼロ。'),
-  say('vargas', 'へえ、さすがだなアラクネア。……おい工場長、次の油差しはあんたがやれ。手つきがだいぶマシになってきた。'),
-  bg('workshop'),
-  clear,
-  narr('夜、作業場でバルガスとアラクネアが、封印された「王の部品」の鉄箱を遠巻きに見ていた。'),
-  say('vargas', '……先代は、俺たちが迷宮で囲まれたとき、しんがりを務めてくださったお方だ。'),
-  say('vargas', 'そのお方の角を削って、何も知らねえチビに押し込むなんざ、職人の仕事じゃねえ。'),
-  say('arachnea', 'ええ。でも、箱をただ突っ返せば、本社は別の工場か軍の魔導師に無理やりやらせるわ。'),
-  say('arachnea', 'だから、私たちがここで預かり続けるしかないのよ。「まだ接合の条件が整わない」って、技術屋の理屈でね。'),
-  say('vargas', '……違えねえ。あんたも、その共犯になる覚悟はあるんだろうな、工場長。'),
-  choice(
-    opt('「技術報告書には、私の署名で『接合不可』と書きます」', [
-      say('arachnea', 'ふふ、いい度胸じゃない。気に入ったわ。'),
-      say('vargas', '……よし。なら、俺ももう一度あんたを「工場長」と呼んでやる。'),
-    ], 'alliedArtisans'),
-    opt('「みんなと一緒に、先代が何を望んでいたのか確かめたい」', [
-      say('vargas', '……ああ。あの方がなんで王核なんかをここに遺したのか、俺も知りてえよ。'),
-    ]),
-  ),
-];
-
-const ch2GradiusBrief: Scene = [
+const c3dragon: Scene = [
   bg('exterior'),
-  title('十二日目', '裏山の古竜'),
+  title('十九日目', '裏山'),
   fx('shake'),
-  narr('十一日目の朝。裏山から重い羽音が響き、工場の広場に巨大な四足の古竜が降り立った。'),
-  say('gradius', '……騒がしいと思えば、王の遺骸を巡って小競り合いか。'),
-  say('lisette', 'グラディウスさん！　屋根の上に降りないでくださいと何度言ったら……！'),
-  say('gradius', 'やかましい。地面に降りてやったであろうが。'),
-  narr('金色の瞳が、あなたと、足元のプルルをまっすぐに射抜いた。'),
-  say('gradius', '貴様が本社の小役人か。……ヴォルグラムの核を前にして、まだ腰を抜かしておらぬところだけは褒めてやろう。'),
-  say('gradius', 'だが、生半可な覚悟で「王を作らぬ」とほざくなら、今ここで焼き払う。王なき軍がどうなるか、貴様は知っておるのか。'),
+  narr('納期まで残り八十一日。裏山から、四足の古竜が降りた。'),
+  say('gradius', '角が歩いておる、と思えば、小役人が王の形を作ったか。', undefined, 'serious'),
+  say('lisette', 'グラディウスさん、屋根の上は禁止です。', undefined, 'angry'),
+  say('gradius', 'ヴォルグラムの右角だ。心はどこじゃ。', undefined, 'serious'),
   choice(
-    opt('「それでも、命を使い潰す王なら要りません」', [
-      say('gradius', '……ふん。あやつと同じようなことを言う。'),
+    opt('「核には触っていません。プルルは、ここです」', [
+      say('gradius', '……隠さなんだか。少しは、見込みがある。', undefined, 'normal'),
     ]),
-    opt('「だからこそ、力ではなく合意で立てる工場を作ります」', [
-      say('gradius', '……大言を吐く。ならば、その言葉が本物か見せてみよ。'),
+    opt('「威光だけでは、門が開くと分かりました」', [
+      say('gradius', '開く前に気づけ。遅ければ、国が割れる。', undefined, 'serious'),
     ]),
   ),
-  say('vera', '最終査定を始めます。相手は冷気を操る魔法使い。再生能力も回復技も凍りつく環境で、どう勝ち切るか見せてみなさい。'),
-  say('gradius', '星硝子と亡霊の灯、あるいは月晶の牙。冷気に頼らぬ守勢と一撃で打ち破ってみせよ、工場長。'),
+  say('vera', '査定は合格とします。ですが、勇者軍の第二調査隊が谷口にいます。', undefined, 'cold'),
 ];
 
-const ch2Audit3Win: Scene = [
-  bg('floor'),
-  say('gradius', '……見事だ。ただ強いだけでなく、帰還するまでを計算に入れた戦い方よな。'),
-  say('vera', '三つの査定、すべて合格です。……認めざるを得ませんね。この工場は、あなたの指揮下で最も高い稼働率を出しています。'),
-  bg('lab'),
-  clear,
-  narr('その夜。研究フロアに、工場の全員が集まった。机の上には、封印箱と白紙の「王の設計図」が置かれている。'),
-  say('lisette', 'これより、第七工場の共同会議を開きます。議題は「特別資材の処遇」について。'),
-  say('orphen', '王角の欠片は、わしとアラクネアで封印庫の奥へ収める。プルルへの接合は行わん。'),
-  say('poyon', 'はい。プルルはこれまでどおり、みんなのそばで育てます。'),
-  say('mimi', '異議なーし！'),
-  say('vargas', '俺も異議なしだ。'),
-  say('lisette', 'では、全会一致ですね。……ヴェラ監察官、これが第七工場の結論です。'),
-  say('vera', '……記録しました。ですが、喜ぶのはまだ早いですよ。'),
+const c3raid: Scene = [
+  bg('gate'),
+  title('二十日目', '門を開けよ'),
+  narr('納期まで残り八十日。'),
+  say('captain', '第七工場に、王がいると聞いた！　騎士団の名において、確認する！', undefined, 'angry'),
+  say('vera', '角の王を門の上へ。加護があるうちに、前衛を割りなさい。', undefined, 'serious'),
+];
+
+const c3open: Scene = [
+  bg('gate'),
   fx('shake'),
-  say('vera', '勇者軍の第二調査隊が、谷の入り口に迫っています。先日の先遣隊より手強い精鋭です。'),
+  say('captain', '魔導技師ルカ・フェンの書簡を読む！　「王よ、門を開けよ」！', undefined, 'angry'),
+  narr('角の王は、呼ばれたとおりに門の錠を抜いた。'),
+  say('mimi', 'だめ、それは命令だよ！　工場長、止めて！', undefined, 'surprised'),
+  say('lisette', '加護が消えました。射手は、素早い個体で！', undefined, 'serious'),
 ];
 
-const ch2RaidIntro: Scene = [
-  bg('black'),
-  title('十三日目', '全員の工場'),
+const c3mid: Scene = [
   bg('gate'),
-  say('captain', '再び参ったぞ、第七工場！　この谷に「王の遺品」が運び込まれたとの報せがある！'),
-  say('captain', '新たな魔王が生まれる前に、ここを制圧する！'),
-  say('vargas', 'ちっ、鼻の利く連中だぜ！'),
-  say('arachnea', 'ラインの圧力は最大で固定したわ！　いつでも出撃させられるわよ！'),
-  say('mimi', 'みんな、怪我しないで帰っておいでね！　療養棟はいつでも空けてあるよ！'),
-  say('gradius', '門の脇はわしが抑える。貴様は正面の三人を、格納庫の兵で退けよ！'),
-  say('lisette', '工場長、出撃の采配をお願いします！'),
+  say('vargas', '弓は退けた。残るは冷気だ。門が開いたままじゃ、工場が死ぬ！', undefined, 'angry'),
+  say('orphen', '星ガラスで受けよ。そして、閉じて、と角の王に言え。', undefined, 'serious'),
 ];
 
-const ch2Raid1: Scene = [
+const c3close: Scene = [
   bg('gate'),
-  say('mimi', '一人目、突破！　まだまだ元気だよ！'),
-  say('arachnea', '次は弓兵よ。速度と技構成を確認して出しなさい！'),
+  say('captain', '……王を、見た。命令一つで門を開ける王を。', undefined, 'surprised'),
+  choice(
+    opt('「閉じて」', [
+      narr('角の王は、開けたときと同じ顔で、門を閉じた。'),
+    ]),
+    opt('「もう、誰の言葉も聞かないで」', [
+      narr('角の王は首を傾げ、それからあなたの「閉じて」を待った。あなたは、その言葉を足した。'),
+    ]),
+  ),
+  say('captain', '退け！　この谷に、王の角がある。本隊と、炎将に伝わらずには済まぬ！', undefined, 'angry'),
 ];
 
-const ch2Raid2: Scene = [
-  bg('gate'),
-  say('gradius', '二人目も退けたか。残るは冷気の魔導師のみだ！'),
-  say('lisette', '最後の一人です、工場長！'),
+const c3castle: Scene = [
+  bg('throne'),
+  title('二十一日目', '帳の前'),
+  narr('同じ時刻、魔王城。帳の奥で、ネフィラは糸を握ったまま動けずにいた。'),
+  say('gardran', '辺境に王がいると、調査隊が報告した。宰相、説明しろ。', undefined, 'angry'),
+  say('zelva', '失敗作だ。威光だけで、命令に従う。現場に置いておけ。', undefined, 'cold'),
+  say('gardran', '失敗だと？　王の形を隠して百日を待つ気か。計画は、今日から俺が預かる。', undefined, 'serious'),
+  say('nephira', '（帳の中で、誰も助けを求められない。声は、先代のものだから。）', 'ネフィラ', 'sad'),
+  say('zelva', '……好きにしろ。右角は、もう戻らぬ。', undefined, 'sad'),
 ];
 
-const ch2Victory: Scene = [
-  bg('gate'),
-  say('captain', '……なんという連携だ。本社の命令で動いている軍勢ではない……自分たちの意志で工場を守っているのか！'),
-  say('captain', '……退くぞ！　これ以上の無理攻めは、騎士団長殿の本意ではない！'),
-  clear,
-  narr('勇者軍の第二調査隊は、負傷者を抱えて谷から撤退していった。'),
-  bg('floor'),
-  say('mimi', 'やったーっ！　みんな無事で帰ってきたよ！'),
-  say('poyon', 'おつかれさまでした。温かい薬液を用意してありますからね。'),
-  say('vargas', 'へっ、秘密がバレたときはどうなるかと思ったが……前よりいい面構えになったじゃねえか、工場長。'),
-  say('lisette', '……ええ。隠し事のない今のほうが、ずっと仕事がしやすいです。'),
-  clear,
-  narr('ヴェラが、書き上げた査察報告書を閉じた。'),
-  say('vera', '本社への報告書はこう記します。「王の部品は共鳴条件が未確立であり、長期の基礎研究を要する。よって第七工場の現体制を継続させる」。'),
-  say('lisette', 'ヴェラさん……よろしいのですか？'),
-  say('vera', '事実に即した報告です。……それに、私にも独自に調べている記録があります。'),
-  say('vera', '三年前、先代魔王と勇者セイルが対峙した最後の戦場。そこには「交戦の痕跡」がほとんどなかったのです。'),
-  say('orphen', '……戦わずに、死を選ばれたと？'),
-  say('gradius', '…………。'),
-  say('vera', '私が掴んでいるのはそこまでです。ですが、勇者軍の中にも、この工場との戦いを望まない者たちがいるはずです。'),
-];
-
-const ch2Night: Scene = [
+const c3night: Scene = [
   bg('lab'),
-  clear,
-  narr('その夜。研究フロアの机の上で、白紙だった「王の設計図」が淡い光を帯びていた。'),
-  narr('誰かが書き込んだわけではない。この工場で共に働き、秘密を分け合い、命を守るために決めた約束が、光の文字となって刻まれている。'),
-  fx('glow'),
-  say('pluru', '……みんなで、きめる。'),
-  narr('今回は、先代の低い声ではなかった。プルル自身の、まだ幼い、けれどはっきりとした声だった。'),
-  say('poyon', 'プルル……！　今、自分の言葉でお話ししましたね……！'),
-  say('orphen', '王の器として上書きされるのではなく、ここで見てきたものを、自分の心にして育っておるのか。'),
-  say('lisette', '工場長。これからも、私たちの作業会議にはあなたの席があります。……一緒に、この工場を続けましょう。'),
+  title('二十二日目', '威だけ'),
+  narr('納期まで残り七十八日。'),
+  say('orphen', '角にあるのは威だけじゃ。心は核にある。核に触れた瞬間、プルルはいなくなる。', undefined, 'serious'),
+  say('mimi', '角の王を責めないで。言われたことをしただけだもん。', undefined, 'sad'),
+  say('gradius', '次に来るのは、嘘を嫌う者だ。ロウガは、膝を折る王を許さぬ。', undefined, 'serious'),
+  say('pluru', '……みんなで、きめる。', undefined, 'serious'),
   bg('black'),
   title('第3章', '完'),
 ];
 
 export const chapter2 = {
-  ch2Arrival,
-  ch2Secret,
-  ch2Audit1Brief,
-  ch2Audit1Win,
-  ch2Audit2Brief,
-  ch2Audit2Win,
-  ch2GradiusBrief,
-  ch2Audit3Win,
-  ch2RaidIntro,
-  ch2Raid1,
-  ch2Raid2,
-  ch2Victory,
-  ch2Night,
+  setback, c3d09, c3d09w, c3d11, c3d11w, c3d13, c3d13w,
+  c3arrive, c3secret, c3council, c3made, c3a1, c3a1w, c3a2, c3a2w, c3dragon,
+  c3raid, c3open, c3mid, c3close, c3castle, c3night,
 } as const;

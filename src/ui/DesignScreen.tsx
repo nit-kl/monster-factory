@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useRef, useState } from 'react';
 import { materials, recipes, type MaterialId } from '../data/recipes';
 import { calculate, recipeFor, unlocked } from '../domain/design';
 import { dayOf } from '../domain/progress';
@@ -28,11 +28,11 @@ export function DesignScreen() {
       <div className="synthesis-center"><div className={`design-preview${illustrated ? ' illustrated-preview' : ''}`}>
         {illustrated ? <div className="specimen-art"><img src={monsterArt[recipe!.id]} alt={recipe!.name} /></div> : <Canvas3D className="fill" create={h => new Preview(h)} onReady={ready} />}
         <div className="specimen-label"><small>{known ? '記録済みの生命' : '共鳴観測'}</small><h2>{known ? recipe!.name : recipe ? '未知の生命反応' : '反応なし'}</h2></div><p className="hint">{illustrated ? '種族共通の姿 · 技構成で戦い方が変化' : 'ドラッグで材料を回転 · 完成した姿は、誕生のときに'}</p></div>
-        <div className="reaction panel" aria-live="polite"><strong>{recipe ? '共鳴を確認' : 'この配合は成立しません'}</strong><p>{recipe?.hint ?? '生命を結ぶ反応がありません。材料を替えてみてください。同じ材料同士も反応しません。'}</p></div>
+        <div className="reaction panel" aria-live="polite"><strong>{recipe ? '材料がひびき合っています' : 'この材料では作れません'}</strong><p>{recipe?.hint ?? '別の組み合わせを試してください。同じ材料を二つ選んでも、魔物は生まれません。'}</p></div>
       </div>
       <aside className="recipe-notes panel"><h2>{known ? recipe!.epithet : '製造ノート'}</h2>
         {recipe && <MoveEditor recipe={recipe.id} selected={design.moves} onChange={moves => setDesign({ moves })} />}
-        {known ? <><p>{recipe!.lore}</p><StatBlock stats={calculate(design)} /><div className="skill-note"><small>固有技 · 3回目の攻撃で発動</small><h3>{recipe!.skill}</h3><p>{recipe!.skillNote}</p></div></> : <p>材料の性質が、姿と戦い方になります。最初の一体を製造すると、この配合と能力が記録されます。</p>}
+        {known ? <><p>{recipe!.lore}</p><StatBlock stats={calculate(design)} /><div className="skill-note"><small>得意な技 · 3回目の攻撃で使う</small><h3>{recipe!.skill}</h3><p>{recipe!.skillNote}</p></div></> : <p>材料の性質が、姿と戦い方になります。最初の一体を製造すると、この配合と能力が記録されます。</p>}
         <button className="big primary" disabled={!unlocked(day, design)} onClick={startManufacture} data-testid="manufacture"><b>{known ? 'この魔物をもう一度つくる' : 'この配合で命をつくる'}</b><small>{recipe ? `${materials[design.first].name} × ${materials[design.second].name}` : '別の材料を選んでください'}</small></button>
         <h3>発見したレシピ <span data-testid="discovery-count">{discovered.length} / {recipes.length}</span></h3>
         <div className="recipe-book">{recipes.map(r => { const seen = discovered.includes(r.id); return <button key={r.id} disabled={!seen || r.pair.some(m => materials[m].day > day)} onClick={() => setDesign({ first: r.pair[0], second: r.pair[1] })} data-testid={`recipe-${r.id}`}><MonsterIcon id={r.id} hidden={!seen} /><span>{seen ? r.name : '未発見'}<small>{seen ? r.pair.map(m => materials[m].name).join(' × ') : r.pair.some(m => materials[m].day > day) ? '未入荷の材料が必要' : r.hint}</small></span></button>; })}</div>
@@ -40,3 +40,4 @@ export function DesignScreen() {
     </div>
   </div>;
 }
+

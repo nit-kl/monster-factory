@@ -43,6 +43,46 @@ export const enemySkills: Record<EnemyId, readonly [Skill, Skill, Skill]> = {
     { ...moves.guard, id: 'ice-ward', name: '氷壁の矢', color: '#7fe6ff', guard: 3, power: 0.8, note: '冷気で攻撃し、次の一撃を3軽減。' },
     { ...moves.bolt, id: 'ice-storm', name: '絶零嵐', fx: 'ice', color: '#7fe6ff', power: 1.15, note: '3行動目。冷気の嵐を放つ。' },
   ],
+  beast: [
+    { ...moves.strike, id: 'beast-bite', name: '噛みつき', power: 1.05, note: '速い牙。' },
+    { ...moves.rush, id: 'beast-rush', name: '突進', power: 0.9, note: '体当たりし、次の一撃を4軽減。' },
+    { ...moves.pierce, id: 'beast-fang', name: '裂牙', fx: 'slash', power: 1.2, note: '3行動目。装甲を裂く。' },
+  ],
+  knight: [
+    { ...moves.strike, id: 'knight-cut', name: '重斬', power: 0.95, note: '重い斬撃。' },
+    { ...moves.guard, id: 'knight-wall', name: '大盾', guard: 6, power: 0.7, note: '盾で受け、次の一撃を6軽減。' },
+    { ...moves.pierce, id: 'knight-break', name: '盾砕き', fx: 'sword', power: 1.15, note: '3行動目。装甲を貫く。' },
+  ],
+  sniper: [
+    { ...moves.pierce, id: 'snipe-shot', name: '精密射撃', power: 1, pierce: false, note: '遠い矢。' },
+    { ...moves.rush, id: 'snipe-step', name: '移動射撃', power: 0.85, guard: 3, note: '射って距離を取る。' },
+    { ...moves.pierce, id: 'snipe-heart', name: '射貫き', fx: 'arrows', power: 1.25, color: '#ffe2a0', note: '3行動目。急所を射抜く。' },
+  ],
+  golem: [
+    { ...moves.strike, id: 'golem-slam', name: '岩拳', power: 0.9, note: '遅い拳。' },
+    { ...moves.guard, id: 'golem-shell', name: '岩殻', guard: 8, power: 0.55, note: '殻を閉じ、次の一撃を8軽減。' },
+    { ...moves.pierce, id: 'golem-quake', name: '地鳴り', fx: 'slash', power: 1.1, note: '3行動目。足元を割る。' },
+  ],
+  alpha: [
+    { ...moves.strike, id: 'alpha-bite', name: '王牙', power: 1.1, note: '群れの長の牙。' },
+    { ...moves.rush, id: 'alpha-rush', name: '踏み込み', power: 0.95, guard: 2, note: '退かない突進。' },
+    { ...moves.pierce, id: 'alpha-howl', name: '咆哮咬', fx: 'slash', power: 1.25, note: '3行動目。喉を狙う。' },
+  ],
+  crusader: [
+    { ...moves.strike, id: 'cross-smite', name: '断罪', power: 1, note: '十字軍の剣。' },
+    { ...moves.guard, id: 'cross-ward', name: '聖壁', guard: 5, power: 0.75, note: '壁を作り、次の一撃を5軽減。' },
+    { ...moves.pierce, id: 'cross-judgement', name: '裁決', fx: 'sword', power: 1.15, note: '3行動目。装甲を割る。' },
+  ],
+  armking: [
+    { ...moves.strike, id: 'arm-crush', name: '圧砕', power: 1.05, note: '右腕の拳。' },
+    { ...moves.guard, id: 'arm-brace', name: '鉄の構え', guard: 5, power: 0.8, note: '構え、次の一撃を5軽減。' },
+    { ...moves.pierce, id: 'arm-cannon', name: '王腕砲', fx: 'furnace', power: 1.3, color: '#ff9d4f', note: '3行動目。止まらない砲撃。' },
+  ],
+  oath: [
+    { ...moves.bolt, id: 'oath-pulse', name: '誓いの脈', power: 0.8, note: '角が震える。' },
+    { ...moves.guard, id: 'oath-still', name: '立ち止まる', guard: 6, power: 0.5, note: '動かず、次の一撃を6軽減。' },
+    { ...moves.bolt, id: 'oath-ring', name: '跪かせる輪', fx: 'bell', power: 0.9, color: '#e8c15a', note: '3行動目。武器を下ろさせる波。' },
+  ],
 };
 export function actionSkill(id: RecipeId, loadout: Loadout, action: number): Skill {
   const slot = action % 3;

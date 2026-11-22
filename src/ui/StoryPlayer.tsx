@@ -1,3 +1,4 @@
+﻿import { Reading } from './Reading';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cast } from '../data/cast';
 import { scenes } from '../data/script';
@@ -23,14 +24,6 @@ type View = {
   log: LogEntry[];
 };
 
-const moodLabels: Record<Exclude<Mood, 'normal'>, string> = {
-  angry: '苛立ち',
-  cold: '冷淡',
-  sad: '憂い',
-  surprised: '動揺',
-  smile: '柔和',
-  serious: '真剣',
-};
 
 /** 背景・演出・一枚絵・立ち位置など、表示を伴わない行をまとめて処理する。 */
 function settle(v: View): View {
@@ -129,7 +122,7 @@ export function StoryPlayer({ sceneId }: { sceneId: string }) {
   const speakerMood = line?.t === 'say' ? resolveMood(line) : 'normal';
   const name = line?.t === 'say' ? line.as ?? cast[line.who].name : null;
   return (
-    <div className={`screen story ${view.fx?.kind === 'shake' ? `shake-${view.fx.n % 2}` : ''}`} data-testid="story" data-scene={sceneId}>
+    <div className={`screen story ${view.cg ? 'has-cg' : ''} ${view.fx?.kind === 'shake' ? `shake-${view.fx.n % 2}` : ''}`} data-testid="story" data-scene={sceneId}>
       <Backdrop bg={view.bg} />
       <div className="story-vignette" />
       {view.fx && view.fx.kind !== 'shake' && <div key={view.fx.n} className={`story-${view.fx.kind}`} />}
@@ -140,23 +133,22 @@ export function StoryPlayer({ sceneId }: { sceneId: string }) {
       {view.cg && <EventCg key={view.cg.id} id={view.cg.id} caption={view.cg.caption} />}
       <div className="story-click" onClick={next} aria-hidden="true" />
       {line?.t === 'title' && (
-        <div className="titlecard" onClick={next}><span>{line.over}</span><strong>{line.main}</strong></div>
+        <div className="titlecard" onClick={next}><span>{line.over}</span><strong><Reading text={line.main} /></strong></div>
       )}
       {line?.t === 'choice' && (
         <div className="choices" role="group" aria-label="選択肢">
-          {line.options.map((o, i) => <button key={o.label} onClick={() => setView(v => proceed(v, i))}><kbd>{i + 1}</kbd>{o.label}</button>)}
+          {line.options.map((o, i) => <button key={o.label} onClick={() => setView(v => proceed(v, i))}><kbd>{i + 1}</kbd><Reading text={o.label} /></button>)}
         </div>
       )}
       {(line?.t === 'say' || line?.t === 'narr') && (
         <div className={`textbox ${line.t} mood-box-${speakerMood}`} onClick={next}>
           {name && (
             <div className="nameplate" style={{ borderColor: speaker ? cast[speaker].color : undefined }}>
-              <strong>{name}</strong>
-              {speaker && <small>{cast[speaker].role}</small>}
-              {speakerMood !== 'normal' && <em className={`mood-tag mood-tag-${speakerMood}`}>{moodLabels[speakerMood]}</em>}
+              <strong><Reading text={name} /></strong>
+              {speaker && <small><Reading text={cast[speaker].role} /></small>}
             </div>
           )}
-          <p aria-live="polite"><span>{text.slice(0, chars)}</span><span className="ghost">{text.slice(chars)}</span></p>
+          <p aria-live="polite"><span><Reading text={text.slice(0, chars)} /></span><span className="ghost"><Reading text={text.slice(chars)} /></span></p>
           {!typing && <i className="more" aria-hidden="true">▼</i>}
         </div>
       )}
@@ -169,10 +161,11 @@ export function StoryPlayer({ sceneId }: { sceneId: string }) {
         <div className="log" role="dialog" aria-label="会話のログ">
           <header><h2>ログ</h2><button onClick={() => setShowLog(false)}>閉じる</button></header>
           <div className="log-body">
-            {view.log.length ? view.log.map((l, i) => <p key={i}>{l.name && <strong>{l.name}</strong>}{l.text}</p>) : <p>まだ記録がありません。</p>}
+            {view.log.length ? view.log.map((l, i) => <p key={i}>{l.name && <strong>{l.name}</strong>}<Reading text={l.text} /></p>) : <p>まだ記録がありません。</p>}
           </div>
         </div>
       )}
     </div>
   );
 }
+

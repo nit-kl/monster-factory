@@ -103,7 +103,7 @@ export function BattleScreen() {
           <header className={won ? 'win' : 'loss'}>
             <small>戦後報告</small>
             <h1 data-testid="outcome">{won ? '勝利' : result.outcome === 'draw' ? '引き分け' : '敗北'}</h1>
-            <p>{result.turns}巡目で決着 ／ {result.enemyFirst ? `${foe.name}が先手` : '味方が先手'} ／ 残り耐久 {result.monsterHp}</p>
+            <p>{result.turns}巡目で決着 ／ {result.enemyFirst ? `${foe.name}が先手` : '味方が先手'} ／ 残り耐久 {result.monsterHp}{won && result.enemyHp > 0 ? ' ／ 耐えきって成功' : ''}</p>
           </header>
           <div className="report-grid">
             <section>

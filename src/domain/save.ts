@@ -13,7 +13,7 @@ export type SaveData = {
   discovered: RecipeId[];
   progress: Progress;
   design: Design;
-  roster: { id: number; design: Design; wins: number; losses: number; nickname?: string }[];
+  roster: { id: number; design: Design; wins: number; losses: number; nickname?: string; away?: boolean }[];
   nextId: number; battles: number; moved: number;
 };
 export type GameData = { progress: Progress; design: Design; roster: Unit[]; nextId: number; battles: number; moved: number; discovered: RecipeId[] };
@@ -45,7 +45,7 @@ function design(v: unknown): Design {
 }
 
 export function toSave(g: GameData): SaveData {
-  return { version: 3, discovered: [...g.discovered], progress: g.progress, design: g.design, nextId: g.nextId, battles: g.battles, moved: g.moved, roster: g.roster.map(u => ({ id: u.id, design: u.design, wins: u.wins, losses: u.losses, ...(u.nickname ? { nickname: u.nickname } : {}) })) };
+  return { version: 3, discovered: [...g.discovered], progress: g.progress, design: g.design, nextId: g.nextId, battles: g.battles, moved: g.moved, roster: g.roster.map(u => ({ id: u.id, design: u.design, wins: u.wins, losses: u.losses, ...(u.nickname ? { nickname: u.nickname } : {}), ...(u.away ? { away: true } : {}) })) };
 }
 export function parseSave(v: unknown): GameData {
   if (!isObject(v) || (v.version !== 2 && v.version !== 3)) throw Error('この保存形式には対応していません');
@@ -54,7 +54,10 @@ export function parseSave(v: unknown): GameData {
   if (!isObject(p)) throw Error('進行データが不正です');
   const step = count(p.step, '進行位置');
   if (step >= steps.length) throw Error('進行位置が不正です');
-  const progress: Progress = { step, queue: strings(p.queue, '場面の予約'), seen: strings(p.seen, '既読の記録'), flags: strings(p.flags, '選択の記録') };
+  const progress: Progress = {
+    step, queue: strings(p.queue, '場面の予約'), seen: strings(p.seen, '既読の記録'), flags: strings(p.flags, '選択の記録'),
+    ...(typeof p.cohort === 'number' ? { cohort: count(p.cohort, '製造区切り') } : {}),
+  };
   const nextId = count(v.nextId, '個体番号');
   if (!Array.isArray(v.roster) || v.roster.length > hangarSize) throw Error('格納庫のデータが不正です');
   const ids = new Set<number>();
@@ -70,7 +73,8 @@ export function parseSave(v: unknown): GameData {
       if (typeof r.nickname !== 'string' || !r.nickname.trim() || r.nickname.trim().length > 20) throw Error('個体の愛称が不正です');
       nickname = r.nickname.trim();
     }
-    return { ...makeUnit(d, id), ...(nickname ? { nickname } : {}), wins: count(r.wins, '戦績'), losses: count(r.losses, '戦績') };
+    if (r.away !== undefined && r.away !== true) throw Error('個体の離脱が不正です');
+    return { ...makeUnit(d, id), ...(nickname ? { nickname } : {}), ...(r.away === true ? { away: true } : {}), wins: count(r.wins, '戦績'), losses: count(r.losses, '戦績') };
   });
   const discovered = v.version === 2 ? [] : strings(v.discovered, '発見の記録');
   if (discovered.some(id => !recipes.some(r => r.id === id))) throw Error('発見の記録が不正です');

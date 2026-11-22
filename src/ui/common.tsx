@@ -35,7 +35,7 @@ export function UnitCard({ unit, selected, onSelect }: { unit: Unit; selected?: 
   const body = (
     <>
       <header><MonsterIcon id={recipeFor(unit.design)!.id} /><strong>{unitTitle(unit)}</strong><small>{unit.wins}勝 {unit.losses}敗</small></header>
-      <p>{designLabel(unit.design)}{badge ? ` ／ ${badge.title}` : ''}</p>
+      <p>{designLabel(unit.design)}{badge ? ` ／ ${badge.title}` : ''}{unit.away ? ' ／ 製造ラインの中' : ''}</p>
       <div className="mini"><span>耐久 {unit.stats.hp}</span><span>攻撃 {unit.stats.attack}</span><span>速度 {unit.stats.speed}</span></div>
       <Tags stats={unit.stats} />
       <MoveSummary recipe={unit.stats.recipe} selected={unit.stats.moves} />

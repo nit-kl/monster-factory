@@ -23,12 +23,17 @@ export const cast: Record<CastId, CastInfo> = {
   luka: { name: 'ルカ', role: '勇者軍・魔導技師', color: '#7fe6ff', image: '/assets/factory/luka-v1.png' },
   grave: { name: 'グレイヴ', role: '勇者軍・騎士団長', color: '#9ab8e8', image: '/assets/factory/grave-v1.png' },
   gardran: { name: 'ガルドラン', role: '魔王軍・炎将', color: '#ff6a3d', image: '/assets/factory/gardran-v1.png' },
+  rouga: { name: 'ロウガ', role: '獣王・諸部族の長', color: '#d7e2ea', shade: 'general' },
+  iris: { name: 'イリス', role: '聖女', color: '#f4f0ff', shade: 'figure' },
+  eleanor: { name: 'エレオノーラ', role: '王国第一王女', color: '#f0d48a', shade: 'figure' },
 };
 /** 工場で相談できる相手（第1章・第2章）。 */
 export const staffIds = ['lisette', 'vargas', 'orphen', 'poyon', 'pluru'] as const;
-/** 第3章「王の部品」で合流する仲間を含めた相談相手。 */
+/** 第3章でヴェラたちと合流したあとの相談相手。 */
+export const arrivedStaffIds = ['lisette', 'vargas', 'orphen', 'poyon', 'pluru', 'mimi', 'arachnea', 'vera'] as const;
+/** グラディウスが裏山から降りてからの相談相手。 */
 export const chapter2StaffIds = ['lisette', 'vargas', 'orphen', 'poyon', 'pluru', 'mimi', 'arachnea', 'gradius', 'vera'] as const;
-/** 第4章以降（全10名）の相談相手。 */
+/** ノアが療養棟で目を覚ましてからの相談相手。 */
 export const allStaffIds = ['lisette', 'vargas', 'orphen', 'poyon', 'pluru', 'mimi', 'arachnea', 'gradius', 'vera', 'noah'] as const;
 export type StaffId = (typeof allStaffIds)[number];
-export const activeStaffIds = (day: number): readonly StaffId[] => (day >= 14 ? allStaffIds : day >= 9 ? chapter2StaffIds : staffIds);
+export const activeStaffIds = (day: number): readonly StaffId[] => (day >= 60 ? allStaffIds : day >= 19 ? chapter2StaffIds : day >= 15 ? arrivedStaffIds : staffIds);

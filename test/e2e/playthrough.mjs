@@ -45,6 +45,14 @@ try {
   const fight = async (name, outcome, capture, automatic = false) => {
     await page.locator('.hangar .unit', { hasText: name }).first().click();
     await id('go-battle').click(); await id('battle').waitFor();
+    if (await page.locator('.tower-stage').count()) {
+      for (let round = 0; round < 5 && !await id('leave-battle').count(); round++) {
+        await page.getByRole('button', { name: /かばう/ }).click();
+      }
+      await expect(id('battle')).toHaveAttribute('data-outcome', 'win');
+      await id('leave-battle').click(); await passStory();
+      return;
+    }
     if (capture) {
       await id('signature').waitFor({ timeout: 25000 });
       await page.waitForTimeout(700);
@@ -96,7 +104,7 @@ try {
   // 第2章：6日目（前衛剣士）→ 7日目（奇襲弓兵）→ 8日目（先遣隊本隊3連戦）
   await fight('熔炉巨人', '勝利');
   await fight('焔花竜', '勝利');
-  await expect(page.locator('.chapter')).toContainText('先遣隊');
+  await expect(page.locator('.objective h2')).toContainText('先遣隊');
   await fight('熔炉巨人', '勝利'); await fight('焔花竜', '勝利'); await fight('幽鐘クラゲ', '勝利', null, true);
   await id('ending').waitFor(); await shot('ending');
   await page.reload(); await id('continue').click(); await id('ending').waitFor();

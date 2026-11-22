@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+﻿import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -101,6 +101,8 @@ export class Stage {
     this.observer.observe(host);
     this.resize();
   }
+  get bloomStrength() { return this.bloom.strength; }
+  set bloomStrength(value: number) { this.bloom.strength = value; }
   private resize() {
     const w = Math.max(1, this.host.clientWidth), h = Math.max(1, this.host.clientHeight);
     this.renderer.setSize(w, h); this.composer.setSize(w, h);
@@ -131,3 +133,4 @@ export class Stage {
     this.renderer.domElement.remove();
   }
 }
+
