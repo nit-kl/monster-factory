@@ -5,7 +5,7 @@ export type ShadeKind = 'serpent' | 'figure' | 'knight' | 'general' | 'none';
 export type CastInfo = { name: string; role: string; color: string; image?: string; shade?: ShadeKind; wide?: boolean };
 export const cast: Record<CastId, CastInfo> = {
   lisette: { name: 'リゼット', role: '副工場長', color: '#e06a8c', image: '/assets/factory/lisette-v2.png' },
-  vargas: { name: 'バルガス', role: '設備主任', color: '#d9a15a', image: '/assets/factory/vargas-v2.png' },
+  vargas: { name: 'バルガス', role: '設備主任', color: '#d9a15a', image: '/assets/factory/vargas-v3.png' },
   orphen: { name: 'オルフェン', role: '研究主任', color: '#b48cff', image: '/assets/factory/orphen-v2.png' },
   poyon: { name: 'ポヨン', role: '培養・品質管理', color: '#c9a8ff', image: '/assets/factory/poyon-v2.png', wide: true },
   pluru: { name: 'プルル', role: '試作体 No.000', color: '#6fc3ff', image: '/assets/factory/pluru-v2.png', wide: true },

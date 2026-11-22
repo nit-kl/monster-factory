@@ -1,5 +1,5 @@
 // 外部音源不要の効果音・アンビエントBGM。ユーザー操作でのみAudioContextを起動する。
-export type SceneMood = 'title' | 'story' | 'hub' | 'design' | 'manufacture' | 'battle' | 'ending';
+export type SceneMood = 'title' | 'story' | 'hub' | 'design' | 'manufacture' | 'ending';
 
 let context: AudioContext | null = null;
 let enabled = false;
@@ -13,7 +13,6 @@ const moodScales: Record<SceneMood, { notes: readonly number[]; intervalMs: numb
   hub: { notes: [146.83, 220, 293.66, 220, 174.61, 220], intervalMs: 1100, wave: 'triangle', volume: 0.024 },
   design: { notes: [329.63, 392, 493.88, 587.33, 493.88, 392], intervalMs: 1200, wave: 'sine', volume: 0.024 },
   manufacture: { notes: [164.81, 220, 246.94, 329.63, 246.94, 440], intervalMs: 850, wave: 'triangle', volume: 0.028 },
-  battle: { notes: [146.83, 146.83, 174.61, 220, 164.81, 130.81], intervalMs: 550, wave: 'sawtooth', volume: 0.022 },
   ending: { notes: [261.63, 329.63, 392, 523.25, 392, 329.63], intervalMs: 1500, wave: 'sine', volume: 0.028 },
 };
 
@@ -79,29 +78,10 @@ export function toggleSound() {
 
 export const soundEnabled = () => enabled;
 
-export function impactSound(special: boolean, tone: number) {
+export function birthChime() {
   if (!enabled || !context) return;
   try {
-    const t = context.currentTime, duration = special ? 0.55 : 0.16;
-    const osc = context.createOscillator(), gain = context.createGain();
-    osc.type = special ? 'sawtooth' : 'triangle';
-    osc.frequency.setValueAtTime(tone, t);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(30, tone * 0.16), t + duration);
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(special ? 0.09 : 0.05, t + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
-    osc.connect(gain).connect(context.destination);
-    osc.start(t);
-    osc.stop(t + duration);
-  } catch {
-    /* ignore */
-  }
-}
-
-export function chimeSound(kind: 'birth' | 'win' | 'loss') {
-  if (!enabled || !context) return;
-  try {
-    const notes = kind === 'birth' ? [392, 493.88, 587.33, 783.99] : kind === 'win' ? [329.63, 392, 523.25, 659.25] : [246.94, 220, 174.61];
+    const notes = [392, 493.88, 587.33, 783.99];
     notes.forEach((freq, i) => {
       if (!context) return;
       const t = context.currentTime + i * 0.11;

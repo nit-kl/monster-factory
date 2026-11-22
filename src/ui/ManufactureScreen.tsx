@@ -7,7 +7,7 @@ import { MonsterIcon, MaterialIcon } from './RecipeArt';
 import { groupNames, lineAt, lineStages, stageGroup, totalDuration } from '../domain/manufacture';
 import { useGame } from '../state/store';
 import { LineScene } from '../three/line';
-import { chimeSound } from '../three/sound';
+import { birthChime } from '../three/sound';
 import { Canvas3D, designLabel, StatBlock, Tags } from './common';
 import { Thumb } from './Portrait';
 import { MoveSummary } from './MoveEditor';
@@ -28,7 +28,7 @@ export function ManufactureScreen() {
   }, []);
   if (!building) return null;
   const total = totalDuration(), at = lineAt(ms), group = stageGroup[at.stage], stats = calculate(building);
-  useEffect(() => { if (at.done) chimeSound('birth'); }, [at.done]);
+  useEffect(() => { if (at.done) birthChime(); }, [at.done]);
   const comment = [...lineStages.slice(0, at.index + 1)].reverse().map(s => comments[s]).find(Boolean);
   const measured = at.index >= 6;
   const recipe = recipeFor(building)!;

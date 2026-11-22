@@ -30,7 +30,7 @@ export type Line =
   | { t: 'narr'; text: string }
   | { t: 'title'; over: string; main: string }
   | { t: 'bg'; bg: BgId }
-  | { t: 'cg'; cg: CgId | null; caption?: string }
+  | { t: 'cg'; cg: CgId | null; caption?: string; mapStep?: MapStep }
   | { t: 'fx'; fx: Fx }
   | { t: 'clear' }
   | { t: 'choice'; options: readonly Option[] }
@@ -40,7 +40,8 @@ export const say = (who: CastId, text: string, as?: string, mood?: Mood): Line =
 export const narr = (text: string): Line => ({ t: 'narr', text });
 export const title = (over: string, main: string): Line => ({ t: 'title', over, main });
 export const bg = (id: BgId): Line => ({ t: 'bg', bg: id });
-export const cg = (id: CgId | null, caption?: string): Line => ({ t: 'cg', cg: id, caption });
+export type MapStep = 'war' | 'castle' | 'closed' | 'destination';
+export const cg = (id: CgId | null, caption?: string, mapStep?: MapStep): Line => ({ t: 'cg', cg: id, caption, mapStep });
 export const fx = (f: Fx): Line => ({ t: 'fx', fx: f });
 export const clear: Line = { t: 'clear' };
 export const opt = (label: string, then: readonly Line[], flag?: string): Option => ({ label, then, flag });

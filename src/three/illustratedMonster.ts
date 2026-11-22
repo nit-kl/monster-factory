@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { monsterArt } from '../data/monsterArt';
 import type { RecipeId } from '../data/recipes';
 import type { Monster } from './monster';
-import { enemies, type EnemyId } from '../data/enemies';
 
 /** Camera-facing painted creature, grounded in the existing manufacturing/battle stage. */
 export function buildIllustratedMonster(id: RecipeId): Monster {
@@ -10,9 +9,6 @@ export function buildIllustratedMonster(id: RecipeId): Monster {
   return buildPaintedActor(monsterArt[id], height, 1);
 }
 
-export function buildIllustratedEnemy(id: EnemyId): Monster {
-  return buildPaintedActor(`/assets/battle/${enemies[id].sprite}-v1.png`, 1.9, 1);
-}
 
 function buildPaintedActor(path: string, height: number, initialAspect: number): Monster {
   const root = new THREE.Group(), body = new THREE.Group(), attack = new THREE.Group(), defense = new THREE.Group();

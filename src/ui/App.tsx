@@ -7,19 +7,21 @@ import { previewMode } from '../state/previewMode';
 import { PreviewMenu } from './PreviewMenu';
 import { setSceneMood } from '../three/sound';
 import { Backdrop } from './Backdrop';
-import { BattleScreen } from './BattleScreen';
-import { TowerScreen } from './TowerScreen';
 import { DesignScreen } from './DesignScreen';
 import { Hub } from './Hub';
 import { ManufactureScreen } from './ManufactureScreen';
 import { StoryPlayer } from './StoryPlayer';
 
+import { Dispatch } from './Dispatch';
+
 function Title() {
+  const [dispatch, setDispatch] = useState(false);
   const newGame = useGame(s => s.newGame), resume = useGame(s => s.resume);
   const [confirm, setConfirm] = useState(false);
   const save = useMemo<{ data: GameData | null; error: string | null }>(() => {
     try { return { data: readSave(), error: null }; } catch (e) { return { data: null, error: e instanceof Error ? e.message : '保存データを読み込めませんでした' }; }
   }, []);
+  if (dispatch) return <Dispatch close={() => setDispatch(false)} />;
   const start = () => { if (!previewMode) clearSave(); newGame(); };
   return (
     <div className="screen title" data-testid="title">
@@ -29,7 +31,7 @@ function Title() {
         <small>魔王軍 第七魔物製造工場</small>
         <h1>モンスター製造課</h1>
         <p className="subtitle">～ 魔王軍最後の工場 ～</p>
-        <div className="title-menu">
+        <div className="title-menu"><button className="big primary" onClick={() => setDispatch(true)}><b>現場調査へ</b><small>短編「誰も押していない停止ボタン」</small></button>
           {save.data && <button className="big primary" onClick={() => resume(save.data!)} data-testid="continue"><b>つづきから</b><small>{viewOf(save.data.progress) === 'end' ? `第${chapterOf(save.data.progress)}章 完` : `第${chapterOf(save.data.progress)}章 ${Math.max(1, dayOf(save.data.progress))}日目`} ／ 格納庫 {save.data.roster.length}体</small></button>}
           {confirm ? (
             <div className="panel confirm">
@@ -41,7 +43,7 @@ function Title() {
           )}
         </div>
         {save.error && <p className="note warn">保存データを読み込めませんでした（{save.error}）。</p>}
-        <p className="note">全8章、百日目まで。読みながら配合と戦闘を重ねると、およそ10時間です。進行はこのブラウザに自動保存されます。</p>
+        <p className="note">全8章、百日目まで。工場で魔物を育みながら、物語を読み進めます。進行はこのブラウザに自動保存されます。</p>
         <p className="note">二つの材料から、ひとつの命。6種類の魔物と、それぞれの固有技を発見してください。</p>
       </div>
     </div>
@@ -59,7 +61,7 @@ const nextChapterButtonLabel: Partial<Record<ChapterNum, { title: string; sub: s
 };
 
 function Ending() {
-  const { progress, discovered, nextId, battles, roster, advanceChapter, toTitle } = useGame();
+  const { progress, discovered, nextId, roster, advanceChapter, toTitle } = useGame();
   const chapter = chapterOf(progress);
   const traits = blueprintTraits(progress, discovered.length, nextId - 1);
   const nextBtn = nextChapterButtonLabel[chapter] ?? null;
@@ -79,7 +81,7 @@ function Ending() {
             </ul>
           )}
         </div>
-        <p className="tally">製造した個体 {nextId - 1}体 ／ 発見した配合 {discovered.length}種 ／ 戦闘 {battles}回 ／ 格納庫 {roster.length}体</p>
+        <p className="tally">製造した個体 {nextId - 1}体 ／ 発見した配合 {discovered.length}種 ／ 格納庫 {roster.length}体</p>
         {nextBtn ? (
           <div className="row">
             <button className="big primary" onClick={advanceChapter} data-testid={nextBtn.testId}><b>{nextBtn.title}</b><small>{nextBtn.sub}</small></button>
@@ -101,7 +103,6 @@ function GameScreen() {
   const view = viewOf(progress), scene = sceneOf(progress);
   useEffect(() => {
     if (!started) setSceneMood('title');
-    else if (sub === 'battle') setSceneMood('battle');
     else if (sub === 'manufacture') setSceneMood('manufacture');
     else if (view === 'story' && scene) setSceneMood('story');
     else if (view === 'end') setSceneMood('ending');
@@ -109,7 +110,6 @@ function GameScreen() {
     else setSceneMood('hub');
   }, [started, sub, view, scene]);
   if (!started) return <Title />;
-  if (sub === 'battle') return useGame.getState().towerBattle ? <TowerScreen /> : <BattleScreen />;
   if (sub === 'manufacture') return <ManufactureScreen />;
   if (view === 'story' && scene) return <StoryPlayer key={`${scene}-${progress.step}-${progress.seen.length}`} sceneId={scene} />;
   if (view === 'end') return <Ending />;

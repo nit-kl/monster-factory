@@ -1,6 +1,5 @@
 import { interludes, steps, type ChapterNum, type Step } from '../data/chapter1';
 export type { ChapterNum };
-import type { EnemyId } from '../data/enemies';
 
 /** 章の進行状況。すべて保存対象。 */
 export type Progress = { step: number; queue: string[]; seen: string[]; flags: string[]; cohort?: number };
@@ -39,13 +38,6 @@ export function viewOf(p: Progress): 'story' | 'hub' | 'end' {
   if (sceneOf(p)) return 'story';
   return stepOf(p).kind === 'end' ? 'end' : 'hub';
 }
-/** これまでに相手として登場した敵（模擬戦で選べる相手）。 */
-export function knownEnemies(p: Progress): EnemyId[] {
-  const out: EnemyId[] = [];
-  steps.slice(0, p.step + 1).forEach(s => { if (s.kind === 'objective' && !out.includes(s.enemy)) out.push(s.enemy); });
-  return out;
-}
-
 const once = (p: Progress, scene: string): Progress =>
   p.seen.includes(scene) || p.queue.includes(scene) ? p : { ...p, queue: [...p.queue, scene] };
 
@@ -57,19 +49,12 @@ export function sceneFinished(p: Progress, newFlags: readonly string[] = []): Pr
   if (p.queue.length) return { ...p, flags, seen, queue: p.queue.slice(1) };
   return { ...p, flags, seen, step: p.step + 1 };
 }
+export function continueFromFactory(p: Progress): Progress {
+  return viewOf(p) === 'hub' ? { ...p, step: p.step + 1 } : p;
+}
+
 export const manufactured = (p: Progress): Progress => once(p, interludes.birth);
 
-export function battleFinished(p: Progress, enemy: EnemyId, outcome: 'win' | 'loss' | 'draw', selfBurned = false): Progress {
-  const s = stepOf(p);
-  if (s.kind !== 'objective' || s.enemy !== enemy) return p; // 練習試合は進行に影響しない
-  if (outcome === 'win') return { ...p, step: p.step + 1 };
-  const chapter = s.chapter ?? 1;
-  const earlyDrill = chapter === 1 && !s.raid;
-  const add = enemy === 'swordsman' && earlyDrill ? ['lostFirst', ...(selfBurned ? ['seenSelfBurn'] : [])] : [];
-  const flags = [...new Set([...p.flags, ...add])];
-  const scene = earlyDrill ? interludes.loss[enemy] : chapter === 2 ? interludes.raidLoss : interludes.setback;
-  return once({ ...p, flags }, scene);
-}
 
 export type BlueprintTrait = { id: string; title: string; note: string };
 

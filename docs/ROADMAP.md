@@ -1,5 +1,7 @@
 # Roadmap and acceptance criteria
 
+> 過去の企画・決定の記録です。現在の画面と進行は [実装状況](IMPLEMENTATION_STATUS.md) を参照してください。
+
 > 初期ロードマップ。2026-11-14承認の現行ゲームループは [MATERIAL_SYNTHESIS.md](MATERIAL_SYNTHESIS.md)。旧器官設計・ライン管理の項目は再検討対象。
 
 ## Milestone 0 — context and bootstrap

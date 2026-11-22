@@ -34,7 +34,7 @@ export function UnitCard({ unit, selected, onSelect }: { unit: Unit; selected?: 
   const badge = veteranBadge(unit);
   const body = (
     <>
-      <header><MonsterIcon id={recipeFor(unit.design)!.id} /><strong>{unitTitle(unit)}</strong><small>{unit.wins}勝 {unit.losses}敗</small></header>
+      <header><MonsterIcon id={recipeFor(unit.design)!.id} /><strong>{unitTitle(unit)}</strong></header>
       <p>{designLabel(unit.design)}{badge ? ` ／ ${badge.title}` : ''}{unit.away ? ' ／ 製造ラインの中' : ''}</p>
       <div className="mini"><span>耐久 {unit.stats.hp}</span><span>攻撃 {unit.stats.attack}</span><span>速度 {unit.stats.speed}</span></div>
       <Tags stats={unit.stats} />

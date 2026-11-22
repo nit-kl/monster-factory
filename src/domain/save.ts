@@ -55,7 +55,7 @@ export function parseSave(v: unknown): GameData {
   const step = count(p.step, '進行位置');
   if (step >= steps.length) throw Error('進行位置が不正です');
   const progress: Progress = {
-    step, queue: strings(p.queue, '場面の予約'), seen: strings(p.seen, '既読の記録'), flags: strings(p.flags, '選択の記録'),
+    step, queue: strings(p.queue, '場面の予約').filter(id => !['swordLoss', 'archerLoss', 'mageLoss', 'raidLoss', 'setback'].includes(id)), seen: strings(p.seen, '既読の記録'), flags: strings(p.flags, '選択の記録'),
     ...(typeof p.cohort === 'number' ? { cohort: count(p.cohort, '製造区切り') } : {}),
   };
   const nextId = count(v.nextId, '個体番号');

@@ -1,8 +1,8 @@
-﻿import { Reading } from './Reading';
+import { Reading } from './Reading';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cast } from '../data/cast';
 import { scenes } from '../data/script';
-import { advance, begin, current, resolveMood, type BgId, type CastId, type CgId, type Cursor, type Fx, type Mood } from '../domain/story';
+import { advance, begin, current, resolveMood, type BgId, type CastId, type CgId, type Cursor, type Fx, type Mood, type MapStep } from '../domain/story';
 import { useGame } from '../state/store';
 import { Backdrop } from './Backdrop';
 import { EventCg } from './EventCg';
@@ -12,7 +12,7 @@ type LogEntry = { name?: string; text: string };
 type View = {
   cursor: Cursor;
   bg: BgId;
-  cg: { id: CgId; caption?: string } | null;
+  cg: { id: CgId; caption?: string; mapStep?: MapStep } | null;
   left: CastId | null;
   right: CastId | null;
   leftMood: Mood;
@@ -33,7 +33,7 @@ function settle(v: View): View {
     if (!line) return next;
     const step = () => advance(next.cursor, new Set(next.flags)).cursor;
     if (line.t === 'bg') next = { ...next, bg: line.bg, cg: null, cursor: step() };
-    else if (line.t === 'cg') next = { ...next, cg: line.cg ? { id: line.cg, caption: line.caption } : null, cursor: step() };
+    else if (line.t === 'cg') next = { ...next, cg: line.cg ? { id: line.cg, caption: line.caption, mapStep: line.mapStep } : null, cursor: step() };
     else if (line.t === 'fx') next = { ...next, fx: { kind: line.fx, n: (next.fx?.n ?? 0) + 1 }, cursor: step() };
     else if (line.t === 'clear') next = { ...next, cg: null, left: null, right: null, leftMood: 'normal', rightMood: 'normal', last: null, cursor: step() };
     else {
@@ -130,7 +130,7 @@ export function StoryPlayer({ sceneId }: { sceneId: string }) {
         {view.left && <Portrait key={view.left} id={view.left} mood={view.leftMood} pulseKey={speaker === view.left ? view.pulse : 0} className={`left ${speaker === view.left ? 'speaking' : 'dim'}`} />}
         {view.right && <Portrait key={view.right} id={view.right} mood={view.rightMood} pulseKey={speaker === view.right ? view.pulse : 0} className={`right ${speaker === view.right ? 'speaking' : 'dim'}`} />}
       </div>
-      {view.cg && <EventCg key={view.cg.id} id={view.cg.id} caption={view.cg.caption} />}
+      {view.cg && <EventCg key={view.cg.id} id={view.cg.id} caption={view.cg.caption} mapStep={view.cg.mapStep} />}
       <div className="story-click" onClick={next} aria-hidden="true" />
       {line?.t === 'title' && (
         <div className="titlecard" onClick={next}><span>{line.over}</span><strong><Reading text={line.main} /></strong></div>

@@ -3,13 +3,6 @@ import { bg, cg, choice, clear, fx, narr, opt, say, title, when, type Line } fro
 // 第3章「角の王」。右角だけで従う王を作り、門を開けて失敗する。
 type Scene = readonly Line[];
 
-const setback: Scene = [
-  bg('floor'),
-  say('lisette', '門はまだ持っています。個体を戻して、配合と技構成を見直してください。', undefined, 'serious'),
-  say('vargas', '一回で決まる戦なんてねえ。傷を見て、もう一度出せ。', undefined, 'angry'),
-  say('orphen', '負け筋は記録に残っておる。一つ潰してから出すのじゃ。', undefined, 'serious'),
-];
-
 const c3d09: Scene = [
   bg('black'),
   title('第3章', '角の王'),
@@ -246,7 +239,7 @@ const c3night: Scene = [
 ];
 
 export const chapter2 = {
-  setback, c3d09, c3d09w, c3d11, c3d11w, c3d13, c3d13w,
+  c3d09, c3d09w, c3d11, c3d11w, c3d13, c3d13w,
   c3arrive, c3secret, c3council, c3made, c3a1, c3a1w, c3a2, c3a2w, c3dragon,
   c3raid, c3open, c3mid, c3close, c3castle, c3night,
 } as const;

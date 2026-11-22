@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { activeStaffIds, allStaffIds, arrivedStaffIds, cast, chapter2StaffIds, staffIds } from '../data/cast';
 import { interludes, steps } from '../data/chapter1';
-import { advice, consultationReflection, scenes } from '../data/script';
+import { consultationReflection, scenes } from '../data/script';
 import { useGame, snapshot } from '../state/store';
-import { battleFinished, chapterOf, dayOf, initialProgress, knownEnemies, manufactured, sceneFinished, sceneOf, startChapter2, startNextChapter, stepOf, viewOf, type Progress } from './progress';
+import { continueFromFactory, chapterOf, dayOf, initialProgress, manufactured, sceneFinished, sceneOf, startChapter2, startNextChapter, stepOf, viewOf, type Progress } from './progress';
 import { parseSave, toSave, writeSave } from './save';
 import { advance, begin, choice, current, narr, opt, resolveMood, say, when, type Line } from './story';
 
@@ -50,7 +50,7 @@ describe('台本', () => {
     expect(spoken([])).toContain('隠し事はなさらないでくださいね');
   });
   it('進行表と差し込み場面が、すべて台本に存在する', () => {
-    const ids = [...steps.flatMap(s => (s.kind === 'story' ? [s.scene] : [])), interludes.birth, interludes.raidLoss, ...Object.values(interludes.loss)];
+    const ids = [...steps.flatMap(s => (s.kind === 'story' ? [s.scene] : [])), interludes.birth];
     ids.forEach(id => expect(scenes[id], id).toBeDefined());
     expect(steps.at(-1)?.kind).toBe('end');
   });
@@ -60,7 +60,7 @@ describe('台本', () => {
     expect(spoken(['deniedToLisette'])).toContain('「何も知らない」とおっしゃいましたね');
     expect(spoken(['liedToVargas'])).toContain('「お元気そうでした」');
   });
-  it('各章の相談メンバー全員に、全敵への助言と進行別メッセージが定義されている', () => {
+  it('各章の相談メンバー全員に、進行別メッセージが定義されている', () => {
     expect(activeStaffIds(5)).toEqual(staffIds);
     expect(activeStaffIds(8)).toEqual(staffIds);
     expect(activeStaffIds(14)).toEqual(staffIds);
@@ -69,14 +69,15 @@ describe('台本', () => {
     expect(activeStaffIds(60)).toEqual(allStaffIds);
     for (const staff of allStaffIds) {
       for (const day of [1, 3, 6, 9, 14, 21]) expect(consultationReflection(staff, day).length).toBeGreaterThan(0);
-      for (const enemy of ['swordsman', 'archer', 'mage'] as const) expect(advice[enemy][staff].length).toBeGreaterThan(0);
     }
   });
   it('序章に視覚的な影武者の手掛かり・道中の情勢解説・一枚絵演出が含まれ、感情推定が機能する', () => {
     const prologueLines = read(scenes.prologue, [], () => 0).seen;
     const cgs = prologueLines.flatMap(l => (l.t === 'cg' && l.cg ? [l.cg] : []));
     const bgs = prologueLines.flatMap(l => (l.t === 'bg' ? [l.bg] : []));
-    expect(cgs).toEqual(['throne_puppet', 'maid_ring', 'world_map']);
+    expect(cgs).toEqual(['throne_puppet', ...Array(5).fill('world_map')]);
+    expect(prologueLines.flatMap(l => l.t === 'cg' && l.cg === 'world_map' ? [l.mapStep] : []))
+      .toEqual([undefined, 'war', 'castle', 'closed', 'destination']);
     expect(bgs).toContain('road');
     expect(resolveMood({ t: 'say', who: 'vargas', text: '触るな！' })).toBe('angry');
     expect(resolveMood({ t: 'say', who: 'lisette', text: '結構です' })).toBe('cold');
@@ -86,57 +87,45 @@ describe('台本', () => {
 
 describe('章の進行', () => {
   const playScenes = (p: Progress) => { let q = p; while (viewOf(q) === 'story') q = sceneFinished(q); return q; };
-  it('序章から始まり、場面を読み終えると最初の目標（剣士）になる', () => {
+  it('序章から始まり、場面を読み終えると工場での準備になる', () => {
     expect(sceneOf(initialProgress)).toBe('prologue');
     const p = playScenes(initialProgress), s = stepOf(p);
-    expect(viewOf(p)).toBe('hub'); expect(s.kind === 'objective' && s.enemy).toBe('swordsman'); expect(dayOf(p)).toBe(1);
+    expect(viewOf(p)).toBe('hub'); expect(s.kind).toBe('objective'); expect(dayOf(p)).toBe(1);
     expect(p.seen).toEqual(['prologue', 'arrival', 'designIntro']);
   });
-  it('最初の製造と最初の敗北で、一度だけ場面が差し込まれる', () => {
+  it('最初の製造で、一度だけ場面が差し込まれる', () => {
     let p = playScenes(initialProgress);
     p = manufactured(p); expect(sceneOf(p)).toBe('birth');
     p = playScenes(p); expect(manufactured(p)).toBe(p);
-    const step = p.step;
-    p = battleFinished(p, 'swordsman', 'loss', true);
-    expect(sceneOf(p)).toBe('swordLoss'); expect(p.flags).toEqual(['lostFirst', 'seenSelfBurn']); expect(p.step).toBe(step);
-    p = playScenes(p);
-    expect(viewOf(battleFinished(p, 'swordsman', 'loss', true))).toBe('hub');
   });
-  it('目標以外の相手との練習試合は進行に影響しない', () => {
-    const p = playScenes(initialProgress);
-    expect(battleFinished(p, 'archer', 'win')).toBe(p);
-  });
-  it('第1章（模擬戦3戦）→第2章（包囲防衛戦5戦）→第3章（王の部品）〜終章まで連続進行できる', () => {
+  it('工場で準備しながら全8章まで連続進行できる', () => {
     let p = playScenes(initialProgress);
-    const days: number[] = [], foes: string[] = [];
+    const days: number[] = [];
     for (let guard = 0; guard < 20 && viewOf(p) !== 'end'; guard++) {
       const s = stepOf(p);
       if (s.kind !== 'objective') throw Error('目標ではありません');
-      days.push(dayOf(p)); foes.push(s.enemy);
-      p = playScenes(battleFinished(p, s.enemy, 'win'));
+      days.push(dayOf(p));
+      p = playScenes(continueFromFactory(p));
     }
     expect(viewOf(p)).toBe('end');
     expect(chapterOf(p)).toBe(1);
     expect(dayOf(p)).toBe(5);
-    expect(foes).toEqual(['swordsman', 'archer', 'mage']);
     expect(days).toEqual([1, 3, 5]);
-    expect(knownEnemies(p)).toEqual(['swordsman', 'archer', 'mage']);
     expect(p.seen).toContain('eveningOrphen');
 
     // 第2章「孤立無援の防衛戦」：前哨戦2戦＋先遣隊本隊3連戦を経て初めて認められる
     p = playScenes(startChapter2(p));
     expect(chapterOf(p)).toBe(2);
-    const ch2Days: number[] = [], ch2Foes: string[] = [];
+    const ch2Days: number[] = [];
     for (let guard = 0; guard < 20 && viewOf(p) !== 'end'; guard++) {
       const s = stepOf(p);
       if (s.kind !== 'objective') throw Error('目標ではありません');
-      ch2Days.push(dayOf(p)); ch2Foes.push(s.enemy);
-      p = playScenes(battleFinished(p, s.enemy, 'win'));
+      ch2Days.push(dayOf(p));
+      p = playScenes(continueFromFactory(p));
     }
     expect(viewOf(p)).toBe('end');
     expect(chapterOf(p)).toBe(2);
     expect(dayOf(p)).toBe(8);
-    expect(ch2Foes).toEqual(['swordsman', 'archer', 'swordsman', 'archer', 'mage']);
     expect(ch2Days).toEqual([6, 7, 8, 8, 8]);
     expect(p.seen).toContain('victory');
     expect(p.seen).toContain('night');
@@ -149,7 +138,7 @@ describe('章の進行', () => {
       for (let guard = 0; guard < 40 && viewOf(p) !== 'end'; guard++) {
         const s = stepOf(p);
         if (s.kind !== 'objective') throw Error('目標ではありません');
-        p = playScenes(battleFinished(p, s.enemy, 'win'));
+        p = playScenes(continueFromFactory(p));
       }
       expect(viewOf(p)).toBe('end');
       expect(chapterOf(p)).toBe(expectedChapter);
@@ -170,12 +159,12 @@ describe('章の進行', () => {
 describe('保存', () => {
   beforeEach(() => useGame.getState().newGame());
   const game = () => useGame.getState();
-  it('製造して戦った状態を保存形式にし、読み戻すと同じ進行になる', () => {
+  it('製造して物語を進めた状態を保存形式にし、読み戻すと同じ進行になる', () => {
     while (viewOf(game().progress) === 'story') game().finishScene([]);
     game().setDesign({ first: 'iron', second: 'ember' }); game().startManufacture(); game().completeManufacture();
     expect(sceneOf(game().progress)).toBe('birth'); game().finishScene([]);
-    game().startBattle(1, 'swordsman'); expect(game().battle?.result.outcome).toBe('win'); game().concludeBattle();
-    expect(game().roster[0]).toMatchObject({ id: 1, wins: 1, losses: 0 });
+    game().continueStory();
+    expect(game().roster[0]).toMatchObject({ id: 1, wins: 0, losses: 0 });
     const data = snapshot(game()), back = parseSave(JSON.parse(JSON.stringify(toSave(data))));
     expect(back).toEqual(data);
   });

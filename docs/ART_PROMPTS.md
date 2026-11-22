@@ -32,33 +32,5 @@
 
 Original game sprite concept for Lisette Crow, deputy manager of a fantasy monster factory. Adult humanoid demon woman, two SHORT horns, pointed ears, deep burgundy hair tied back for work, practical high-collared dark plum factory manager coat with restrained antique gold trim, long trousers and boots, holding a production ledger and pencil. Strict competent cost-conscious organizer with a quietly caring expression. Modest functional workwear, no crown, no military rank insignia. Detailed crisp pixel art matching a purple stone and brass isometric fantasy factory. Full body centered, three-quarter view facing slightly left, all horns and feet visible with generous margin. Transparent background, no floor, no shadows, no scenery, no lettering, no UI. Character only. This is a proposed character design.
 
-### public/assets/battle/swordsman-v1.png
-
-Original 2D game battle sprite, a generic adult human swordsman opponent in a fantasy monster factory game. Full body side three-quarter view facing LEFT, steel breastplate, simple helmet, muted blue tabard, brown boots, sword held ready and small round shield. Readable compact silhouette, detailed crisp pixel art, restrained heroic design not a named hero. Warm neutral highlights with subtle purple reflected light. Isolated single character centered with margin, genuinely transparent background, no floor no shadow no outer glow no text no UI. Suitable for 150 pixel tall combat display.
-
-### public/assets/battle/slime-v1.png
-
-Single original game battle sprite: a factory-grown generic slime monster, translucent emerald green jelly body, small determined eyes, simple mouth, squat rounded silhouette, facing RIGHT in three-quarter view. No golden core (this is NOT the blue mascot Pluru), no jars or objects inside, no clothes. Detailed crisp pixel art matching purple and gold fantasy factory game. Clear readable silhouette at 130px display size. Isolated entire character with margin, transparent background, no scenery no floor no shadow no text no UI no exterior glow. Base body without attached organs, organs are added by UI later.
-
-### public/assets/battle/golem-v1.png
-
-Single original game sprite of a factory-grown stone golem base body. Stocky massive gray stone creature, broad blocky shoulders, thick short legs, tiny amber eyes in stone head, seams between stone plates, neutral determined expression. No weapons, no clothing, no embedded fire or poison, no magical core visible. Full body three-quarter side view facing RIGHT. Detailed crisp pixel art matching a purple and brass fantasy factory game. Readable at 150px high. Transparent background, entire body with margin, no ground no shadow no scenery no text no UI. One creature only.
-
-### public/assets/battle/beast-v1.png
-
-Single original game sprite of a factory-grown beast base body, fully nonhuman quadrupedal wolf-like fantasy creature. Lean agile build, charcoal blue fur, thick mane, four paws, long tail, amber eyes, alert determined expression, no clothing no armor no weapon. Full body three-quarter side view facing RIGHT. Detailed crisp pixel art consistent with purple stone and brass fantasy factory game, readable at 150px. Transparent background, centered with margin around all paws ears tail, no floor no shadow no scene no text no UI. One creature only.
-
-## 敵素材追加（内蔵 image_gen、2026-11-08）
-
-いずれも transparent_background=true。外観案として保存。生成結果は目視確認。
-
-### public/assets/battle/archer-v1.png
-
-Single original fantasy game enemy sprite, adult human archer, full body three-quarter side view facing LEFT. Practical forest green hood and leather armor, brown boots, quiver, holds longbow ready. Neutral focused expression, no named hero identity. Crisp detailed pixel art matching a purple-and-brass monster factory game, clear silhouette for 150px tall display. Transparent background, full body centered with margin, no ground, no scene, no shadows, no text no UI. One character only.
-
-### public/assets/battle/mage-v1.png
-
-Single original fantasy game enemy sprite: adult human frost mage, full body three-quarter side view facing LEFT. Clearly living human face, NOT a lich, no skull. Pale blue layered robes with silver trim, blue hood, boots, holding wooden staff topped with small icy crystal, free hand conjuring tiny frost spark. Crisp detailed pixel art matching purple-and-brass fantasy monster factory game. Clear silhouette at 150px display size. Entire character centered with margin, transparent background, no ground no shadow no scenery no text no UI. One character only, generic opponent not a named hero.
-
 ## 2026-11-08 最新キャラクター資料
 全10人の透過立ち絵v2の入力対応・最終プロンプトは [CHARACTER_ART_V2.md](CHARACTER_ART_V2.md) に記録。内蔵image_genで生成し、public/assets/factoryへ保存。

@@ -1,4 +1,4 @@
-import type { CgId } from '../domain/story';
+import type { CgId, MapStep } from '../domain/story';
 
 const cgTitles: Record<CgId, string> = {
   throne_puppet: '記録の矛盾 ―― 二本角の巨影とからくり糸',
@@ -19,9 +19,9 @@ const cgTitles: Record<CgId, string> = {
 };
 
 const cgPaths: Record<CgId, string> = {
-  throne_puppet: '/assets/cg/throne_puppet.png',
+  throne_puppet: '/assets/cg/throne_puppet-v3.png',
   maid_ring: '/assets/cg/maid_ring.png',
-  world_map: '/assets/cg/world_map.png',
+  world_map: '/assets/cg/world_map-v2.png',
   cold_welcome: '/assets/cg/cold_welcome.png',
   first_birth: '/assets/cg/first_birth.png',
   gate_defense: '/assets/cg/gate_defense.png',
@@ -36,11 +36,35 @@ const cgPaths: Record<CgId, string> = {
   factory_morning: '/assets/cg/factory_morning.png',
 };
 
-export function EventCg({ id, caption }: { id: CgId; caption?: string }) {
+function MapMarks({ step }: { step: MapStep }) {
+  const factories = [[168,280],[270,319],[145,396],[625,279],[700,325],[646,396]];
+  return <svg className="event-map-marks" viewBox="0 0 800 450" role="img"
+    aria-label={step === 'closed' ? '第一から第六工場にバツ印' : step === 'destination' ? '南の谷の第七工場に丸印' : '地図上の軍の位置'}>
+    {step === 'war' && <>
+      <text x="400" y="49">北の勇者軍</text><text x="400" y="244">南の魔王軍</text>
+    </>}
+    {step === 'castle' && <>
+      <ellipse cx="403" cy="192" rx="53" ry="42" stroke="#ffe2a0" /><text x="403" y="249">本社・魔王城</text>
+    </>}
+    {(step === 'closed' || step === 'destination') && factories.map(([x,y],i) => (
+      <g key={i} className="map-factory-mark" transform={`translate(${x} ${y})`}>
+        <path d="M-16 10V-4l11-7v8l11-8v5h4v-14h6v30Z" fill="#352422" stroke="#e7b998" />
+        <path d="M-21-20 21 15M21-20-21 15" fill="none" stroke="#ff7863" strokeWidth="4" />
+        <text y="29">第{i+1}工場</text>
+      </g>
+    ))}
+    {step === 'destination' && <>
+      <ellipse cx="398" cy="352" rx="54" ry="44" stroke="#ffe2a0" /><text x="398" y="415">第七工場</text>
+    </>}
+  </svg>;
+}
+
+export function EventCg({ id, caption, mapStep }: { id: CgId; caption?: string; mapStep?: MapStep }) {
   return (
     <figure className="event-cg" data-testid={`cg-${id}`}>
-      <div className="event-cg-frame">
+      <div className={`event-cg-frame${id === 'world_map' ? ' event-map-frame' : ''}`}>
         <img src={cgPaths[id]} alt={cgTitles[id]} draggable={false} />
+        {id === 'world_map' && mapStep && <MapMarks key={mapStep} step={mapStep} />}
       </div>
       <figcaption>{caption ?? cgTitles[id]}</figcaption>
     </figure>

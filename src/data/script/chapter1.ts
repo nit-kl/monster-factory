@@ -72,7 +72,7 @@ const designIntro: Scene = [
   say('orphen', 'では、最低限の手順だけ教えておこう。魔物を造るには、二つの材料を共鳴させるのじゃ。', undefined, 'serious'),
   say('vargas', '材料庫で今使えるのは、鉄くず、亡霊の灯、竜の血の三つだ。無駄遣いするんじゃねえぞ。', undefined, 'cold'),
   say('orphen', '鉄と亡霊なら粘り強い鎧、鉄と竜の血なら重い一撃を持つ巨人が生まれる。剣士の盾を割るなら後者が向くじゃろうな。', undefined, 'normal'),
-  say('lisette', '配合台で材料を二つ選び、製造ラインへ流してください。完成したら格納庫から模擬戦へ出撃させます。', undefined, 'cold'),
+  say('lisette', '配合台で材料を二つ選び、製造ラインへ流してください。完成したら格納庫で登録を確認してください。', undefined, 'cold'),
   say('vargas', '反応しねえ組み合わせを無理に流して形成輪を傷つけたら、即座に手を引いてもらうからな。', undefined, 'angry'),
   say('orphen', '固有技は三回目の行動で放たれる。また、通常技の順番も格納庫で組み替えられるぞ。……では、お手並み拝見といこうか。', undefined, 'normal'),
 ];
@@ -80,31 +80,12 @@ const designIntro: Scene = [
 const birth: Scene = [
   bg('floor'),
   narr('培養槽の薬液が排出され、生まれたばかりの個体がガラスの向こうで小さく震えながら目を開けた。'),
-  cg('first_birth', '培養槽から現れた最初の命と、思わず差し出した乾いた布'),
   narr('足元がおぼつかない個体が搬出口で膝をつきかけた瞬間、あなたは考えるより先に駆け寄り、備え付けの乾いた布でその肩を支えていた。'),
   say('poyon', 'あ……！　ありがとうございます、まだ体温が安定していなくて……。', undefined, 'surprised'),
   say('pluru', 'ぷるぷる！', undefined, 'smile'),
-  cg(null),
   say('vargas', '……おい、何やってんだ書記官。撫でた程度でいい上司ぶるんじゃねえよ。', undefined, 'cold'),
   say('vargas', '形成輪の数値は正常だ。お前がベタベタ触ると調整が狂う、さっさと格納庫へ回せ。', undefined, 'cold'),
-  say('lisette', '個体の登録を済ませました。準備ができ次第、模擬戦を開始してください。', undefined, 'cold'),
-];
-
-const swordLoss: Scene = [
-  bg('floor'),
-  say('vargas', '……戻ってきたぞ！　ほら見ろ、机の上の計算だけで生き物を戦わせるからこうなるんだ！', undefined, 'angry'),
-  say('lisette', '剣士の盾は通常攻撃を軽減します。盾を貫く火力か、固有技まで耐える構成が必要です。', undefined, 'cold'),
-  narr('あなたは無言で報告書を受け取ると、『製造・指揮責任者』の欄に現場職人の名ではなく自分の名前だけを書いた。'),
-  choice(
-    opt('「私の設計ミスです。先にこの子の手当てをお願いします」', [
-      say('poyon', '……はい。すぐ療養槽へ運びますね。', undefined, 'sad'),
-    ]),
-    opt('「被弾箇所の記録をすべて残します。次は必ず直します」', [
-      say('orphen', 'ほう、自分の失態を消さずに書き残すか。鉄くずと竜の血の配合も試してみたまえ。', undefined, 'serious'),
-    ]),
-  ),
-  narr('あなたが傷ついた個体の担架の片側を持ち上げると、バルガスは忌々しそうに舌打ちしながらも反対側を持ち上げた。'),
-  say('vargas', '……勘違いするなよ。こいつが重いから手伝うだけだ。お前を許したわけじゃねえ。', undefined, 'cold'),
+  say('lisette', '個体の登録を済ませました。工場長の準備が済んだら、次の日程に移ります。', undefined, 'cold'),
 ];
 
 const swordWin: Scene = [
@@ -154,13 +135,6 @@ const archerBrief: Scene = [
   say('vargas', '……ふん、頭でっかちの書記官がどこまで対応できるか、見物だな。', undefined, 'cold'),
 ];
 
-const archerLoss: Scene = [
-  bg('floor'),
-  say('vargas', '言わんこっちゃねえ！　鈍重な個体をそのまま出して蜂の巣にしやがって！', undefined, 'angry'),
-  say('orphen', '弓兵の速度は14じゃ。こちらの速度が9以上あれば追撃は防げる。古樹の種と竜の血を試すか、疾風撃・守勢打を組み込むのじゃ。', undefined, 'serious'),
-  say('vargas', '傷ついた奴の手当てが先だ。どけ、洗浄槽へ運ぶぞ！', undefined, 'angry'),
-];
-
 const archerWin: Scene = [
   bg('floor'),
   say('lisette', '……第二試験、突破を確認しました。速度差による二連射を封じた判断は妥当です。', undefined, 'cold'),
@@ -201,12 +175,6 @@ const mageBrief: Scene = [
   say('vargas', '最後の入荷分、『星ガラス』を出しておいた。これをどう使うかが、お前の最後の試験だ。', undefined, 'serious'),
   say('orphen', '星ガラスと亡霊の灯なら冷気に耐える浮遊体、星ガラスと月光の雫なら氷の詠唱より速く懐へ飛び込む狼が生まれるぞ。', undefined, 'normal'),
   say('lisette', 'これに勝てば送還要求は取り下げます。……ですが、負ければ明日の朝には荷馬車に乗っていただきます。', undefined, 'cold'),
-];
-
-const mageLoss: Scene = [
-  bg('floor'),
-  say('poyon', 'あぁ、冷気で体が凍りついて……！　早く温かい薬液をかけてあげないと！', undefined, 'surprised'),
-  say('orphen', '竜の血の熱は冷気と相性が悪く、再生も封じられる。星ガラスと亡霊の灯、あるいは星ガラスと月光の雫で冷気対策を組むのじゃ。', undefined, 'serious'),
 ];
 
 const mageWin: Scene = [
@@ -308,7 +276,7 @@ const ch2Skirmish2Brief: Scene = [
   narr('その時、あなたは資料室で寝泊まりしていた間に読み込んだ『八十年前の旧配管図』を広げた。'),
   say('orphen', 'おお、それは創設時の旧図面じゃな！　……そうか、第三隔壁を閉じれば煙突の熱気を逸らし、迎撃用の足場を作れる！', undefined, 'surprised'),
   say('lisette', '資料室に押し込められていた間に、古い図面をすべて頭に入れていたのですか……！？', undefined, 'surprised'),
-  say('lisette', '隔壁の操作は私がやります！　工場長、格納庫から素早い個体を選んで弓兵を迎え撃ってください！', undefined, 'serious'),
+  say('lisette', '隔壁の操作は私がやります！　工場長、格納庫の子たちをお願いします！', undefined, 'serious'),
 ];
 
 const eveningPoyon: Scene = [
@@ -335,25 +303,19 @@ const raidIntro: Scene = [
   say('vargas', '剣士、弓兵、魔法使いの精鋭が三段構えで押し寄せてきやがった！　外門が持つのもあとわずかだ！', undefined, 'angry'),
   say('vargas', 'おい、昨日までのよそ者扱いは今日で終わりだ。正門の指揮はあんたに全部預ける！', undefined, 'serious'),
   say('lisette', '補給路の遮断も、換気塔の危機も、あなたの判断で乗り越えました。最後の一戦も、あなたの采配に従います！', undefined, 'serious'),
-  say('orphen', '相手は一人ずつ順番に出てくる。格納庫から相手に合わせた個体を選んで送り出すのじゃ！', undefined, 'serious'),
+  say('orphen', '相手は一人ずつ順番に出てくる。こちらも順に持ち場に就くぞ！', undefined, 'serious'),
 ];
 
 const raid1: Scene = [
   bg('gate'),
   say('vargas', 'よし、先鋒の剣士を吹っ飛ばしたぞ！　あんたの図面どおりだ！', undefined, 'smile'),
-  say('lisette', '続けて二番手、高速弓兵が出ます！　格納庫から個体を選び直してください！', undefined, 'serious'),
+  say('lisette', '続けて二番手、高速弓兵が出ます！　こちらも第二班に交代します！', undefined, 'serious'),
 ];
 
 const raid2: Scene = [
   bg('gate'),
   say('lisette', '二人目も突破！　こちらの個体はまだ一匹も欠けていません！', undefined, 'smile'),
   say('orphen', '残るは隊長直属の氷結魔導師のみじゃ。冷気に耐える個体で止めを刺すぞ！', undefined, 'serious'),
-];
-
-const raidLoss: Scene = [
-  bg('gate'),
-  say('lisette', 'まだ門は持ちます！　一度個体を引かせましょう、設計と技構成を見直してください！', undefined, 'serious'),
-  say('vargas', '作り直す時間くらい、俺が蒸気槌を振り回してでも稼いでやる！　諦めるんじゃねえぞ！', undefined, 'angry'),
 ];
 
 const victory: Scene = [
@@ -414,15 +376,12 @@ export const chapter1 = {
   arrival,
   designIntro,
   birth,
-  swordLoss,
   swordWin,
   eveningLisette,
   archerBrief,
-  archerLoss,
   archerWin,
   eveningVargas,
   mageBrief,
-  mageLoss,
   mageWin,
   eveningOrphen,
   ch2CrisisIntro,
@@ -432,7 +391,6 @@ export const chapter1 = {
   raidIntro,
   raid1,
   raid2,
-  raidLoss,
   victory,
   night,
 } as const;
